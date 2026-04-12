@@ -1,0 +1,75 @@
+# Products Database
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: products-db
+  namespace: databases
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.3
+
+  bootstrap:
+    initdb:
+      database: productsdb
+      owner: appuser
+      secret:
+        name: products-db-credentials
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  storage:
+    size: 1Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: products-db-credentials
+  namespace: databases
+type: Opaque
+stringData:
+  username: appuser
+  password: apppassword
+---
+# Orders Database
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: orders-db
+  namespace: databases
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.3
+
+  bootstrap:
+    initdb:
+      database: ordersdb
+      owner: appuser
+      secret:
+        name: orders-db-credentials
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  storage:
+    size: 1Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: orders-db-credentials
+  namespace: databases
+type: Opaque
+stringData:
+  username: appuser
+  password: apppassword

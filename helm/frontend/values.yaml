@@ -1,0 +1,35 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/YOUR_GITHUB_USERNAME/k8s-demo-app/frontend
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 70
+
+readinessProbe:
+  path: /
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+livenessProbe:
+  path: /
+  initialDelaySeconds: 20
+  periodSeconds: 30

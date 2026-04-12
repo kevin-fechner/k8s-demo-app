@@ -1,0 +1,45 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/YOUR_GITHUB_USERNAME/k8s-demo-app/order-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8082
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+env:
+  DB_HOST: "orders-db-rw.databases.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "ordersdb"
+  PRODUCT_SERVICE_URL: "http://product-service.demo-app.svc.cluster.local"
+
+secret:
+  DB_USER: "appuser"
+  DB_PASSWORD: "apppassword"
+
+readinessProbe:
+  path: /actuator/health/readiness
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+livenessProbe:
+  path: /actuator/health/liveness
+  initialDelaySeconds: 60
+  periodSeconds: 30
