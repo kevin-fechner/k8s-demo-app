@@ -3,6 +3,10 @@ spring:
     name: api-gateway
 
   cloud:
+    refresh:
+      enabled: false
+    config:
+      enabled: false
     gateway:
       server:
         webflux:
@@ -11,21 +15,11 @@ spring:
               uri: ${PRODUCT_SERVICE_URL:http://localhost:8081}
               predicates:
                 - Path=/api/products/**
-              filters:
-                - name: CircuitBreaker
-                  args:
-                    name: product-service
-                    fallbackUri: forward:/fallback/products
 
             - id: order-service
               uri: ${ORDER_SERVICE_URL:http://localhost:8082}
               predicates:
                 - Path=/api/orders/**
-              filters:
-                - name: CircuitBreaker
-                  args:
-                    name: order-service
-                    fallbackUri: forward:/fallback/orders
 
           globalcors:
             cors-configurations:
