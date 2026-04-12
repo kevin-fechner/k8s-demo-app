@@ -40,11 +40,12 @@ jobs:
         working-directory: services/api-gateway
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           mvn sonar:sonar \
-            -Dsonar.projectKey=api-gateway \
+            -Dsonar.projectKey=kevin-fehner_api-gateway \
             -Dsonar.projectName="API Gateway" \
+            -Dsonar.organization=kevin-fechner \
+            -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -B
 
@@ -53,7 +54,7 @@ jobs:
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_HOST_URL: https://sonarcloud.io
 
   build:
     name: Build & Push Image

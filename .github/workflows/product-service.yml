@@ -40,11 +40,12 @@ jobs:
         working-directory: services/product-service
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           mvn sonar:sonar \
-            -Dsonar.projectKey=product-service \
+            -Dsonar.projectKey=kevin-fechner_product-service \
             -Dsonar.projectName="Product Service" \
+            -Dsonar.organization=kevin-fechner \
+            -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -B
 
@@ -53,7 +54,7 @@ jobs:
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_HOST_URL: https://sonarcloud.io
 
   build:
     name: Build & Push Image

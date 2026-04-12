@@ -20,8 +20,8 @@
         <java.version>21</java.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <sonar.organization>YOUR_SONAR_ORG</sonar.organization>
-        <sonar.host.url>http://sonarqube.local</sonar.host.url>
+        <sonar.organization>kevin-fechner</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <dependencies>
