@@ -39,7 +39,7 @@ jobs:
       - name: SonarQube Analysis
         working-directory: services/product-service
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PRODUCT }}
         run: |
           mvn sonar:sonar \
             -Dsonar.projectKey=kevin-fechner_product-service \
