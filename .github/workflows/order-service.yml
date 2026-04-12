@@ -110,7 +110,9 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          git stash
           git pull --rebase origin main
+          git stash pop
           SHA_TAG="sha-$(echo ${{ github.sha }} | cut -c1-7)"
           sed -i "s|tag: .*|tag: \"${SHA_TAG}\"|" \
             helm/product-service/values.yaml
