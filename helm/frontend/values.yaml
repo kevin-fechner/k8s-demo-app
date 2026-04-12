@@ -1,7 +1,7 @@
 replicaCount: 2
 
 image:
-  repository: ghcr.io/YOUR_GITHUB_USERNAME/k8s-demo-app/frontend
+  repository: ghcr.io/kevin-fechner/k8s-demo-app/frontend
   pullPolicy: IfNotPresent
   tag: "latest"
 
