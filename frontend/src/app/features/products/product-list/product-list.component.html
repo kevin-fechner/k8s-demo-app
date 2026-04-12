@@ -1,0 +1,67 @@
+<div class="page-header">
+  <h1>Products</h1>
+  <div class="header-stats">
+    <span class="stat">Total: {{ store.totalProducts() }}</span>
+    <span class="stat in-stock">In stock: {{ store.inStockProducts() }}</span>
+    <span class="stat out-of-stock">Out of stock: {{ store.outOfStockProducts() }}</span>
+  </div>
+  <button class="btn-primary" (click)="store.openForm()">
+    + Add Product
+  </button>
+</div>
+
+@if (store.loading()) {
+  <div class="loading" role="status" aria-live="polite">
+    Loading products...
+  </div>
+}
+
+@if (store.error()) {
+  <div class="error" role="alert">
+    {{ store.error() }}
+    <button class="btn-close" (click)="store.clearError()"
+            aria-label="Dismiss error">✕</button>
+  </div>
+}
+
+@if (!store.loading() && store.products().length === 0 && !store.error()) {
+  <div class="empty">No products found.</div>
+}
+
+<div class="grid">
+  @for (product of store.products(); track product.id) {
+    <div class="card">
+      <div class="card-header">
+        <h3>{{ product.name }}</h3>
+        <span class="badge"
+              [class.out-of-stock]="product.stock === 0"
+              [attr.aria-label]="'Stock: ' + product.stock">
+              Stock: {{ product.stock }}
+            </span>
+      </div>
+      <p class="description">{{ product.description }}</p>
+      <div class="card-footer">
+        <span class="price">{{ product.price | currency }}</span>
+        <div class="actions">
+          <button class="btn-edit"
+                  (click)="store.openForm(product)"
+                  [attr.aria-label]="'Edit ' + product.name">
+            Edit
+          </button>
+          <button class="btn-delete"
+                  (click)="confirmDelete(product)"
+                  [attr.aria-label]="'Delete ' + product.name">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+@if (store.showForm()) {
+  <app-product-form
+    [product]="store.selectedProduct()"
+    (saved)="store.closeForm()"
+    (cancelled)="store.closeForm()" />
+}

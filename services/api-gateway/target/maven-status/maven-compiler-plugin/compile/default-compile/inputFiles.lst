@@ -1,0 +1,3 @@
+/home/kevin-fechner/k8s-demo-app/services/api-gateway/src/main/java/com/demo/apigateway/ApiGatewayApplication.java
+/home/kevin-fechner/k8s-demo-app/services/api-gateway/src/main/java/com/demo/apigateway/controller/FallbackController.java
+/home/kevin-fechner/k8s-demo-app/services/api-gateway/src/main/java/com/demo/apigateway/filter/LoggingFilter.java

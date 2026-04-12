@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Product.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">product-service</a> &gt; <a href="index.source.html" class="el_package">com.demo.productservice.entity</a> &gt; <span class="el_source">Product.java</span></div><h1>Product.java</h1><pre class="source lang-java linenums">package com.demo.productservice.entity;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.*;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = &quot;products&quot;)
+@Getter
+<span class="nc" id="L12">@Setter</span>
+<span class="nc" id="L13">@NoArgsConstructor</span>
+<span class="fc" id="L14">@AllArgsConstructor</span>
+<span class="pc" id="L15">@Builder</span>
+public class Product {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+<span class="nc" id="L20">    private Long id;</span>
+
+    @NotBlank(message = &quot;Name is required&quot;)
+    @Size(max = 255)
+    @Column(nullable = false)
+<span class="nc" id="L25">    private String name;</span>
+
+    @Column(columnDefinition = &quot;TEXT&quot;)
+<span class="nc" id="L28">    private String description;</span>
+
+    @NotNull(message = &quot;Price is required&quot;)
+    @DecimalMin(value = &quot;0.0&quot;, inclusive = false)
+    @Column(nullable = false, precision = 10, scale = 2)
+<span class="nc" id="L33">    private BigDecimal price;</span>
+
+    @NotNull(message = &quot;Stock is required&quot;)
+    @Min(value = 0)
+    @Column(nullable = false)
+<span class="nc" id="L38">    private Integer stock;</span>
+
+    @Column(name = &quot;created_at&quot;, nullable = false, updatable = false)
+<span class="nc" id="L41">    private LocalDateTime createdAt;</span>
+
+    @Column(name = &quot;updated_at&quot;, nullable = false)
+<span class="nc" id="L44">    private LocalDateTime updatedAt;</span>
+
+    @PrePersist
+    protected void onCreate() {
+<span class="nc" id="L48">        createdAt = LocalDateTime.now();</span>
+<span class="nc" id="L49">        updatedAt = LocalDateTime.now();</span>
+<span class="nc" id="L50">    }</span>
+
+    @PreUpdate
+    protected void onUpdate() {
+<span class="nc" id="L54">        updatedAt = LocalDateTime.now();</span>
+<span class="nc" id="L55">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

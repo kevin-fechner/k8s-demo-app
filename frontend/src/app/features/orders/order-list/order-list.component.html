@@ -1,0 +1,88 @@
+<div class="page-header">
+  <h1>Orders</h1>
+  <div class="header-stats">
+    <span class="stat">Total: {{ store.totalOrders() }}</span>
+    <span class="stat pending">Pending: {{ store.pendingOrders() }}</span>
+    <span class="stat revenue">
+          Revenue: {{ store.totalRevenue() | currency }}
+        </span>
+  </div>
+  <button class="btn-primary" (click)="store.openForm()">
+    + New Order
+  </button>
+</div>
+
+@if (store.loading()) {
+  <div class="loading" role="status" aria-live="polite">
+    Loading orders...
+  </div>
+}
+
+@if (store.error()) {
+  <div class="error" role="alert">
+    {{ store.error() }}
+    <button class="btn-close" (click)="store.clearError()"
+            aria-label="Dismiss error">✕
+    </button>
+  </div>
+}
+
+@if (!store.loading() && store.orders().length === 0 && !store.error()) {
+  <div class="empty">No orders found.</div>
+}
+
+<div class="orders">
+  @for (order of store.orders(); track order.id) {
+    <div class="order-card">
+      <div class="order-header">
+        <div>
+          <h3>Order #{{ order.id }}</h3>
+          <p>{{ order.customerName }} · {{ order.customerEmail }}</p>
+          @if (order.notes) {
+            <p class="notes">{{ order.notes }}</p>
+          }
+        </div>
+        <div class="order-meta">
+              <span class="status" [class]="order.status.toLowerCase()"
+                    [attr.aria-label]="'Status: ' + order.status">
+                {{ order.status }}
+              </span>
+          <span class="total">{{ order.totalAmount | currency }}</span>
+        </div>
+      </div>
+
+      <div class="order-items">
+        @for (item of order.items; track item.id) {
+          <div class="item">
+            <span>{{ item.productName }} × {{ item.quantity }}</span>
+            <span>{{ item.subtotal | currency }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="order-actions">
+        <label [for]="'status-' + order.id" class="sr-only">
+          Change status for order #{{ order.id }}
+        </label>
+        <select [id]="'status-' + order.id"
+                (change)="updateStatus(order.id, $event)">
+          <option value="">Change status...</option>
+          @for (s of statuses; track s) {
+            <option [value]="s" [selected]="order.status === s">{{ s }}</option>
+          }
+        </select>
+        <button class="btn-delete"
+                (click)="confirmDelete(order)"
+                [attr.aria-label]="'Delete order #' + order.id">
+          Delete
+        </button>
+      </div>
+    </div>
+  }
+</div>
+
+@if (store.showForm()) {
+  <app-order-form
+    (saved)="store.closeForm()"
+    (cancelled)="store.closeForm()"/>
+}
