@@ -4,7 +4,6 @@ metadata:
   name: demo-app-ingress
   namespace: demo-app
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
 spec:
