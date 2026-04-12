@@ -5,6 +5,7 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.cloud.autoconfigure.LifecycleMvcEndpointAutoConfiguration
+      - org.springframework.cloud.autoconfigure.RefreshAutoConfiguration
 
   cloud:
     gateway:
