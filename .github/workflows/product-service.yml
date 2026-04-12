@@ -110,6 +110,10 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          git pull --rebase origin main
+          SHA_TAG="sha-$(echo ${{ github.sha }} | cut -c1-7)"
+          sed -i "s|tag: .*|tag: \"${SHA_TAG}\"|" \
+            helm/product-service/values.yaml
           git add helm/product-service/values.yaml
-          git commit -m "ci: update product-service image to sha-$(echo ${{ github.sha }} | cut -c1-7) [skip ci]"
+          git diff --staged --quiet || git commit -m "ci: update product-service image to ${SHA_TAG} [skip ci]"
           git push
