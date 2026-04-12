@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: ghcr.io/kevin-fechner/k8s-demo-app/product-service
   pullPolicy: IfNotPresent
-  tag: "sha-1d524d8"
+  tag: "sha-bb4e92d"
 
 service:
   type: ClusterIP
