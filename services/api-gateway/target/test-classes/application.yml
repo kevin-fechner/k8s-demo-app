@@ -1,0 +1,6 @@
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes: []

@@ -4,52 +4,50 @@ spring:
 
   cloud:
     gateway:
-      routes:
-        # Product Service routes
-        - id: product-service
-          uri: ${PRODUCT_SERVICE_URL:http://localhost:8081}
-          predicates:
-            - Path=/api/products/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: product-service
-                fallbackUri: forward:/fallback/products
+      server:
+        webflux:
+          routes:
+            - id: product-service
+              uri: ${PRODUCT_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/products/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: product-service
+                    fallbackUri: forward:/fallback/products
 
-        # Order Service routes
-        - id: order-service
-          uri: ${ORDER_SERVICE_URL:http://localhost:8082}
-          predicates:
-            - Path=/api/orders/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: order-service
-                fallbackUri: forward:/fallback/orders
+            - id: order-service
+              uri: ${ORDER_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/orders/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: order-service
+                    fallbackUri: forward:/fallback/orders
 
-      # Global CORS configuration
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins:
-              - "http://localhost:4200"    # Angular dev server
-              - "http://frontend.local"    # K8s ingress
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - PATCH
-              - DELETE
-              - OPTIONS
-            allowedHeaders:
-              - "*"
-            allowCredentials: true
-            maxAge: 3600
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  - "http://localhost:4200"
+                  - "http://frontend.local"
+                  - "http://demo-app.local"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - PATCH
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders:
+                  - "*"
+                allowCredentials: true
+                maxAge: 3600
 
-      # Default filters applied to all routes
-      default-filters:
-        - AddResponseHeader=X-Gateway, api-gateway
-        - AddResponseHeader=X-Response-Time, ${spring.application.name}
+          default-filters:
+            - AddResponseHeader=X-Gateway, api-gateway
 
 server:
   port: 8080
@@ -58,12 +56,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,gateway
+        include: health,info,metrics
   endpoint:
     health:
       show-details: always
-    gateway:
-      enabled: true
 
 logging:
   level:
