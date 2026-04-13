@@ -1,4 +1,5 @@
 /home/kevin-fechner/k8s-demo-app/services/product-service/src/main/java/com/demo/productservice/ProductServiceApplication.java
+/home/kevin-fechner/k8s-demo-app/services/product-service/src/main/java/com/demo/productservice/config/KafkaConfig.java
 /home/kevin-fechner/k8s-demo-app/services/product-service/src/main/java/com/demo/productservice/controller/ProductController.java
 /home/kevin-fechner/k8s-demo-app/services/product-service/src/main/java/com/demo/productservice/dto/ProductRequest.java
 /home/kevin-fechner/k8s-demo-app/services/product-service/src/main/java/com/demo/productservice/dto/ProductResponse.java
@@ -6,6 +7,8 @@
 /home/kevin-fechner/k8s-demo-app/services/product-service/src/main/java/com/demo/productservice/exception/GlobalExceptionHandler.java
 /home/kevin-fechner/k8s-demo-app/services/product-service/src/main/java/com/demo/productservice/exception/ProductNotFoundException.java
 /home/kevin-fechner/k8s-demo-app/services/product-service/src/main/java/com/demo/productservice/mapper/ProductMapper.java
+/home/kevin-fechner/k8s-demo-app/services/product-service/src/main/java/com/demo/productservice/messaging/InventoryEventPublisher.java
+/home/kevin-fechner/k8s-demo-app/services/product-service/src/main/java/com/demo/productservice/messaging/OrderEventConsumer.java
 /home/kevin-fechner/k8s-demo-app/services/product-service/src/main/java/com/demo/productservice/repository/ProductRepository.java
 /home/kevin-fechner/k8s-demo-app/services/product-service/src/main/java/com/demo/productservice/service/ProductService.java
 /home/kevin-fechner/k8s-demo-app/services/product-service/src/main/java/com/demo/productservice/service/impl/ProductServiceImpl.java

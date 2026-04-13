@@ -1,0 +1,4 @@
+/home/kevin-fechner/k8s-demo-app/services/notification-service/src/main/java/com/demo/notificationservice/NotificationServiceApplication.java
+/home/kevin-fechner/k8s-demo-app/services/notification-service/src/main/java/com/demo/notificationservice/config/KafkaConfig.java
+/home/kevin-fechner/k8s-demo-app/services/notification-service/src/main/java/com/demo/notificationservice/messaging/OrderEventConsumer.java
+/home/kevin-fechner/k8s-demo-app/services/notification-service/src/main/java/com/demo/notificationservice/service/EmailService.java

@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.demo.productservice.controller.ProductControllerTest
--------------------------------------------------------------------------------
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.171 s -- in com.demo.productservice.controller.ProductControllerTest
