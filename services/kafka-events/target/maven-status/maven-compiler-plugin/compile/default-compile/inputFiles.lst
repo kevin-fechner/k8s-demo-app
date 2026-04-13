@@ -1,0 +1,4 @@
+/home/kevin-fechner/k8s-demo-app/services/kafka-events/src/main/java/com/demo/events/inventory/StockInsufficientEvent.java
+/home/kevin-fechner/k8s-demo-app/services/kafka-events/src/main/java/com/demo/events/inventory/StockUpdatedEvent.java
+/home/kevin-fechner/k8s-demo-app/services/kafka-events/src/main/java/com/demo/events/order/OrderCreatedEvent.java
+/home/kevin-fechner/k8s-demo-app/services/kafka-events/src/main/java/com/demo/events/order/OrderStatusChangedEvent.java

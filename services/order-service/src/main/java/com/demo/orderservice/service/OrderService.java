@@ -8,5 +8,7 @@ public interface OrderService {
     OrderResponse getOrderById(Long id);
     OrderResponse createOrder(OrderRequest request);
     OrderResponse updateStatus(Long id, UpdateStatusRequest request);
+    void confirmOrder(Long orderId);
+    void cancelOrder(Long orderId);
     void deleteOrder(Long id);
 }

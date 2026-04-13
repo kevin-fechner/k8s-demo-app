@@ -1,0 +1,5 @@
+com/demo/events/order/OrderCreatedEvent$OrderItem.class
+com/demo/events/order/OrderCreatedEvent.class
+com/demo/events/inventory/StockInsufficientEvent.class
+com/demo/events/inventory/StockUpdatedEvent.class
+com/demo/events/order/OrderStatusChangedEvent.class
