@@ -1,0 +1,27 @@
+cat > ~/k8s-demo-app/.gitignore << 'EOF'
+# Maven build output
+**/target/
+**/*.jar
+**/*.war
+**/*.class
+
+# Node / Angular
+**/node_modules/
+**/dist/
+**/.angular/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+*.env.local
+EOF
