@@ -1,4 +1,0 @@
-com/demo/notificationservice/NotificationServiceApplication.class
-com/demo/notificationservice/service/EmailService.class
-com/demo/notificationservice/config/KafkaConfig.class
-com/demo/notificationservice/messaging/OrderEventConsumer.class

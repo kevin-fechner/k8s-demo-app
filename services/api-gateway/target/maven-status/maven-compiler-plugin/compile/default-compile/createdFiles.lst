@@ -1,3 +1,0 @@
-com/demo/apigateway/ApiGatewayApplication.class
-com/demo/apigateway/controller/FallbackController.class
-com/demo/apigateway/filter/LoggingFilter.class
