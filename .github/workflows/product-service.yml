@@ -5,11 +5,13 @@ on:
     branches: [ main ]
     paths:
       - 'services/product-service/**'
+      - 'services/kafka-events/**'
       - '.github/workflows/product-service.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'services/product-service/**'
+      - 'services/kafka-events/**'
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/k8s-demo-app/product-service
@@ -31,6 +33,10 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: temurin
           cache: maven
+      - name: Build kafka-events module
+        run: |
+          cd services/kafka-events
+          mvn clean install -DskipTests          
 
       - name: Run tests with coverage
         working-directory: services/product-service
