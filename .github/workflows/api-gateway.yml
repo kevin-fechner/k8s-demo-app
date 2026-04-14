@@ -60,6 +60,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+
+      - name: Build JAR
+        working-directory: services/api-gateway
+        run: mvn clean package -DskipTests
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
