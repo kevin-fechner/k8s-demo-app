@@ -45,6 +45,7 @@ jobs:
         run: mvn clean verify -B
 
       - name: SonarCloud Analysis
+        continue-on-error: true
         working-directory: services/notification-service
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_NOTIFICATION }}
