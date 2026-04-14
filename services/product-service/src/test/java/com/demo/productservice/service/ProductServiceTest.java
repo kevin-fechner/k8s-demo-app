@@ -1,9 +1,13 @@
 package com.demo.productservice.service;
 
+import com.demo.events.order.OrderCreatedEvent;
+import com.demo.events.inventory.StockInsufficientEvent;
+import com.demo.events.inventory.StockUpdatedEvent;
 import com.demo.productservice.dto.*;
 import com.demo.productservice.entity.Product;
 import com.demo.productservice.exception.ProductNotFoundException;
 import com.demo.productservice.mapper.ProductMapper;
+import com.demo.productservice.messaging.InventoryEventPublisher;
 import com.demo.productservice.repository.ProductRepository;
 import com.demo.productservice.service.impl.ProductServiceImpl;
 import org.junit.jupiter.api.*;
@@ -11,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
@@ -24,6 +29,9 @@ class ProductServiceTest {
 
 	@Mock
 	private ProductMapper productMapper;
+
+	@Mock
+	private InventoryEventPublisher inventoryEventPublisher;
 
 	@InjectMocks
 	private ProductServiceImpl productService;
@@ -125,5 +133,68 @@ class ProductServiceTest {
 
 		assertThatThrownBy(() -> productService.deleteProduct(99L))
 				.isInstanceOf(ProductNotFoundException.class);
+	}
+
+	@Test
+	@DisplayName("Should throw exception when updating non-existing product")
+	void updateProduct_NonExistingId_ThrowsException() {
+		when(productRepository.findById(99L)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> productService.updateProduct(99L, testRequest))
+				.isInstanceOf(ProductNotFoundException.class)
+				.hasMessageContaining("99");
+	}
+
+	@Test
+	@DisplayName("Should deduct stock and publish StockUpdatedEvent when stock is sufficient")
+	void reserveStock_SufficientStock_DeductsStockAndPublishesStockUpdated() {
+		OrderCreatedEvent event = new OrderCreatedEvent(
+				1L, "John Doe", "john@example.com",
+				List.of(new OrderCreatedEvent.OrderItem(1L, "Widget", 3, new BigDecimal("9.99"))),
+				new BigDecimal("29.97"),
+				LocalDateTime.of(2024, 1, 15, 10, 0, 0)
+		);
+		when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
+		when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+
+		productService.reserveStock(event);
+
+		assertThat(testProduct.getStock()).isEqualTo(7);
+		verify(productRepository).save(testProduct);
+		verify(inventoryEventPublisher).publishStockUpdated(any(StockUpdatedEvent.class));
+	}
+
+	@Test
+	@DisplayName("Should publish StockInsufficientEvent when requested quantity exceeds stock")
+	void reserveStock_InsufficientStock_PublishesStockInsufficient() {
+		OrderCreatedEvent event = new OrderCreatedEvent(
+				1L, "John Doe", "john@example.com",
+				List.of(new OrderCreatedEvent.OrderItem(1L, "Widget", 20, new BigDecimal("9.99"))),
+				new BigDecimal("199.80"),
+				LocalDateTime.of(2024, 1, 15, 10, 0, 0)
+		);
+		when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
+
+		productService.reserveStock(event);
+
+		verify(productRepository, never()).save(any());
+		verify(inventoryEventPublisher).publishStockInsufficient(any(StockInsufficientEvent.class));
+	}
+
+	@Test
+	@DisplayName("Should skip item silently when product is not found during stock reservation")
+	void reserveStock_ProductNotFound_SkipsItem() {
+		OrderCreatedEvent event = new OrderCreatedEvent(
+				1L, "John Doe", "john@example.com",
+				List.of(new OrderCreatedEvent.OrderItem(99L, "Ghost", 1, new BigDecimal("9.99"))),
+				new BigDecimal("9.99"),
+				LocalDateTime.of(2024, 1, 15, 10, 0, 0)
+		);
+		when(productRepository.findById(99L)).thenReturn(Optional.empty());
+
+		assertThatNoException().isThrownBy(() -> productService.reserveStock(event));
+		verify(productRepository, never()).save(any());
+		verify(inventoryEventPublisher, never()).publishStockUpdated(any());
+		verify(inventoryEventPublisher, never()).publishStockInsufficient(any());
 	}
 }

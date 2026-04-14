@@ -1,11 +1,14 @@
 package com.demo.orderservice.service;
 
+import com.demo.events.order.OrderCreatedEvent;
+import com.demo.events.order.OrderStatusChangedEvent;
 import com.demo.orderservice.client.ProductClient;
 import com.demo.orderservice.dto.*;
 import com.demo.orderservice.entity.*;
 import com.demo.orderservice.entity.Order;
 import com.demo.orderservice.exception.*;
 import com.demo.orderservice.mapper.OrderMapper;
+import com.demo.orderservice.messaging.OrderEventPublisher;
 import com.demo.orderservice.repository.OrderRepository;
 import com.demo.orderservice.service.impl.OrderServiceImpl;
 import org.junit.jupiter.api.*;
@@ -23,6 +26,7 @@ class OrderServiceTest {
     @Mock private OrderRepository orderRepository;
     @Mock private OrderMapper orderMapper;
     @Mock private ProductClient productClient;
+    @Mock private OrderEventPublisher eventPublisher;
     @InjectMocks private OrderServiceImpl orderService;
 
     private Order testOrder;
@@ -103,6 +107,7 @@ class OrderServiceTest {
 
         assertThat(result.customerName()).isEqualTo("John Doe");
         verify(orderRepository, times(1)).save(any(Order.class));
+        verify(eventPublisher).publishOrderCreated(any(OrderCreatedEvent.class));
     }
 
     @Test
@@ -127,6 +132,51 @@ class OrderServiceTest {
 
         assertThat(result).isNotNull();
         verify(orderRepository, times(1)).save(any(Order.class));
+        verify(eventPublisher).publishOrderStatusChanged(any(OrderStatusChangedEvent.class));
+    }
+
+    @Test
+    @DisplayName("Should confirm order and publish status changed event")
+    void confirmOrder_ExistingOrder_SetsConfirmedStatus() {
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(testOrder));
+        when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
+
+        orderService.confirmOrder(1L);
+
+        assertThat(testOrder.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        verify(eventPublisher).publishOrderStatusChanged(any(OrderStatusChangedEvent.class));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when confirming non-existing order")
+    void confirmOrder_NonExistingOrder_ThrowsException() {
+        when(orderRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> orderService.confirmOrder(99L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("99");
+    }
+
+    @Test
+    @DisplayName("Should cancel order and publish status changed event")
+    void cancelOrder_ExistingOrder_SetsCancelledStatus() {
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(testOrder));
+        when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
+
+        orderService.cancelOrder(1L);
+
+        assertThat(testOrder.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+        verify(eventPublisher).publishOrderStatusChanged(any(OrderStatusChangedEvent.class));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when cancelling non-existing order")
+    void cancelOrder_NonExistingOrder_ThrowsException() {
+        when(orderRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> orderService.cancelOrder(99L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("99");
     }
 
     @Test
