@@ -6,8 +6,8 @@ COPY target/*.jar app.jar
 RUN chown -R appuser:appgroup /app
 USER appuser
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget -q -O- http://localhost:8082/actuator/health || exit 1
-EXPOSE 8082
+  CMD wget -q -O- http://localhost:8081/actuator/health || exit 1
+EXPOSE 8081
 ENTRYPOINT ["java", \
   "-XX:+UseContainerSupport", \
   "-XX:MaxRAMPercentage=75.0", \
