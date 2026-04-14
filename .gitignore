@@ -1,4 +1,3 @@
-cat > ~/k8s-demo-app/.gitignore << 'EOF'
 # Maven build output
 **/target/
 **/*.jar
@@ -24,4 +23,3 @@ Thumbs.db
 # Environment
 .env
 *.env.local
-EOF
