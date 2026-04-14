@@ -126,12 +126,12 @@ jobs:
 
       - name: Commit and push updated values
         run: |
-          SHA_TAG="sha-$(echo ${{ github.sha }} | cut -c1-7)"
-          sed -i "s|tag: .*|tag: \"${SHA_TAG}\"|" \
-            helm/notification-service/values.yaml
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          git stash
           git pull --rebase origin main
+          git stash pop
           git add helm/notification-service/values.yaml
+          SHA_TAG="sha-$(echo ${{ github.sha }} | cut -c1-7)"
           git diff --staged --quiet || git commit -m "ci: update notification-service image to ${SHA_TAG} [skip ci]"
           git push
