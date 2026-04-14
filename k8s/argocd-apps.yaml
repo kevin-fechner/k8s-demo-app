@@ -48,6 +48,31 @@ spec:
     syncOptions:
     - CreateNamespace=true
 ---
+# Notification Service
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: notification-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kevin-fechner/k8s-demo-app.git
+    targetRevision: HEAD
+    path: helm/notification-service
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo-app
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
 # API Gateway
 apiVersion: argoproj.io/v1alpha1
 kind: Application

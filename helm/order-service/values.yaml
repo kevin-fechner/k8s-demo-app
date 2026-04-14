@@ -29,6 +29,8 @@ env:
   DB_PORT: "5432"
   DB_NAME: "ordersdb"
   PRODUCT_SERVICE_URL: "http://product-service.demo-app.svc.cluster.local"
+  KAFKA_BOOTSTRAP_SERVERS: kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092
+  SPRING_PROFILES_ACTIVE: kubernetes
 
 secret:
   DB_USER: "appuser"
@@ -43,3 +45,5 @@ livenessProbe:
   path: /actuator/health/liveness
   initialDelaySeconds: 60
   periodSeconds: 30
+
+  
