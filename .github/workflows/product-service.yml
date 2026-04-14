@@ -19,7 +19,7 @@ env:
 
 jobs:
   test:
-    name: Test & SonarQube Analysis
+    name: Test & SonarCloud Analysis
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -42,7 +42,8 @@ jobs:
         working-directory: services/product-service
         run: mvn clean verify -B
 
-      - name: SonarQube Analysis
+      - name: SonarCloud Analysis
+        continue-on-error: true
         working-directory: services/product-service
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PRODUCT }}

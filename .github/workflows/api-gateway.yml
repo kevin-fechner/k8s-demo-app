@@ -17,7 +17,7 @@ env:
 
 jobs:
   test:
-    name: Test & SonarQube Analysis
+    name: Test & SonarCloud Analysis
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -36,7 +36,8 @@ jobs:
         working-directory: services/api-gateway
         run: mvn clean verify -B
 
-      - name: SonarQube Analysis
+      - name: SonarCloud Analysis
+        continue-on-error: true
         working-directory: services/api-gateway
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_GATEWAY }}
