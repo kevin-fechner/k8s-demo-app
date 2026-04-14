@@ -112,7 +112,7 @@ jobs:
           git config user.email "actions@github.com"
           git stash
           git pull --rebase origin main
-          git stash pop
+          git stash pop || true
           git add helm/api-gateway/values.yaml
           SHA_TAG="sha-$(echo ${{ github.sha }} | cut -c1-7)"
           git diff --staged --quiet || git commit -m "ci: update api-gateway image to ${SHA_TAG} [skip ci]"
