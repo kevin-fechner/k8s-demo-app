@@ -2,7 +2,8 @@ package com.demo.orderservice.controller;
 
 import com.demo.orderservice.dto.*;
 import com.demo.orderservice.entity.OrderStatus;
-import com.demo.orderservice.exception.*;
+import com.demo.orderservice.exception.OrderNotFoundException;
+import com.demo.orderservice.exception.ProductNotAvailableException;
 import com.demo.orderservice.service.impl.OrderServiceImpl;
 import com.demo.orderservice.mapper.OrderMapperImpl;
 import org.junit.jupiter.api.*;
@@ -113,5 +114,51 @@ class OrderControllerTest {
 
         mockMvc.perform(delete("/api/orders/1"))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("POST /api/orders - should return 422 when product not available")
+    void createOrder_ProductNotAvailable_Returns422() throws Exception {
+        when(orderService.createOrder(any()))
+                .thenThrow(new ProductNotAvailableException(1L));
+
+        mockMvc.perform(post("/api/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testRequest)))
+                .andExpect(status().is(422));
+    }
+
+    @Test
+    @DisplayName("POST /api/orders - should return 400 when request is invalid")
+    void createOrder_InvalidRequest_Returns400() throws Exception {
+        OrderRequest invalid = new OrderRequest(null, "john@example.com",
+                List.of(new OrderItemRequest(1L, 2)), null);
+
+        mockMvc.perform(post("/api/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalid)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("DELETE /api/orders/{id} - should return 404 when not found")
+    void deleteOrder_Returns404() throws Exception {
+        doThrow(new OrderNotFoundException(99L)).when(orderService).deleteOrder(99L);
+
+        mockMvc.perform(delete("/api/orders/99"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("PATCH /api/orders/{id}/status - should return 404 when not found")
+    void updateStatus_Returns404() throws Exception {
+        when(orderService.updateStatus(eq(99L), any()))
+                .thenThrow(new OrderNotFoundException(99L));
+
+        mockMvc.perform(patch("/api/orders/99/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new UpdateStatusRequest(OrderStatus.CONFIRMED))))
+                .andExpect(status().isNotFound());
     }
 }
