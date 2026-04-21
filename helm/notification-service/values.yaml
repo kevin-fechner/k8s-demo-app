@@ -22,3 +22,9 @@ env:
   MAIL_HOST: mailhog.mailhog.svc.cluster.local
   MAIL_PORT: "1025"
   SPRING_PROFILES_ACTIVE: kubernetes
+  DB_HOST: notifications-db-rw.databases.svc.cluster.local
+  DB_PORT: "5432"
+  DB_NAME: notificationsdb
+
+db:
+  password: "apppassword"

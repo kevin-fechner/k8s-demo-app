@@ -73,3 +73,40 @@ type: Opaque
 stringData:
   username: appuser
   password: apppassword
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: notifications-db
+  namespace: databases
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.3
+
+  bootstrap:
+    initdb:
+      database: notificationsdb
+      owner: app
+      secret:
+        name: notifications-db-credentials
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  storage:
+    size: 1Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: notifications-db-credentials
+  namespace: databases
+type: Opaque
+stringData:
+  username: app
+  password: apppassword
