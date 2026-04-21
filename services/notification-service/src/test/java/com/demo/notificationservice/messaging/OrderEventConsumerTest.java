@@ -2,6 +2,7 @@ package com.demo.notificationservice.messaging;
 
 import com.demo.events.order.OrderCreatedEvent;
 import com.demo.events.order.OrderStatusChangedEvent;
+import com.demo.notificationservice.idempotency.IdempotencyService;
 import com.demo.notificationservice.service.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,14 +16,18 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
 
 @ExtendWith(MockitoExtension.class)
 class OrderEventConsumerTest {
 
-    @Mock private EmailService emailService;
-    @InjectMocks private OrderEventConsumer consumer;
+    @Mock
+    private EmailService emailService;
+    @Mock
+    private IdempotencyService idempotencyService;
+    @InjectMocks
+    private OrderEventConsumer consumer;
 
     private OrderCreatedEvent orderCreatedEvent;
     private OrderStatusChangedEvent orderStatusChangedEvent;
@@ -46,6 +51,8 @@ class OrderEventConsumerTest {
     @Test
     @DisplayName("Should delegate OrderCreatedEvent to EmailService.sendOrderConfirmation")
     void onOrderCreated_DelegatesToEmailService() {
+        when(idempotencyService.tryProcess(anyString(), anyString())).thenReturn(true);
+
         consumer.onOrderCreated(orderCreatedEvent);
 
         verify(emailService).sendOrderConfirmation(orderCreatedEvent);
@@ -55,6 +62,8 @@ class OrderEventConsumerTest {
     @Test
     @DisplayName("Should delegate OrderStatusChangedEvent to EmailService.sendStatusUpdate")
     void onOrderStatusChanged_DelegatesToEmailService() {
+        when(idempotencyService.tryProcess(anyString(), anyString())).thenReturn(true);
+
         consumer.onOrderStatusChanged(orderStatusChangedEvent);
 
         verify(emailService).sendStatusUpdate(orderStatusChangedEvent);
