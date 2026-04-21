@@ -18,7 +18,7 @@ resources:
     cpu: 500m
 
 env:
-  KAFKA_BOOTSTRAP_SERVERS: kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092
   MAIL_HOST: mailhog.mailhog.svc.cluster.local
   MAIL_PORT: "1025"
   SPRING_PROFILES_ACTIVE: kubernetes
