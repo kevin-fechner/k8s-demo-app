@@ -53,10 +53,29 @@ class OrderEventConsumerTest {
     void onOrderCreated_DelegatesToEmailService() {
         when(idempotencyService.tryProcess(anyString(), anyString())).thenReturn(true);
 
-        consumer.onOrderCreated(orderCreatedEvent);
+        consumer.onOrderCreated(orderCreatedEvent, "OrderCreatedEvent");
 
         verify(emailService).sendOrderConfirmation(orderCreatedEvent);
         verifyNoMoreInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("Should skip OrderCreatedEvent when idempotency check fails")
+    void onOrderCreated_SkipsWhenAlreadyProcessed() {
+        when(idempotencyService.tryProcess(anyString(), anyString())).thenReturn(false);
+
+        consumer.onOrderCreated(orderCreatedEvent, "OrderCreatedEvent");
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("Should skip OrderCreatedEvent when eventType header does not match")
+    void onOrderCreated_SkipsWrongEventType() {
+        consumer.onOrderCreated(orderCreatedEvent, "OrderStatusChangedEvent");
+
+        verifyNoInteractions(idempotencyService);
+        verifyNoInteractions(emailService);
     }
 
     @Test
@@ -64,9 +83,28 @@ class OrderEventConsumerTest {
     void onOrderStatusChanged_DelegatesToEmailService() {
         when(idempotencyService.tryProcess(anyString(), anyString())).thenReturn(true);
 
-        consumer.onOrderStatusChanged(orderStatusChangedEvent);
+        consumer.onOrderStatusChanged(orderStatusChangedEvent, "OrderStatusChangedEvent");
 
         verify(emailService).sendStatusUpdate(orderStatusChangedEvent);
         verifyNoMoreInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("Should skip OrderStatusChangedEvent when idempotency check fails")
+    void onOrderStatusChanged_SkipsWhenAlreadyProcessed() {
+        when(idempotencyService.tryProcess(anyString(), anyString())).thenReturn(false);
+
+        consumer.onOrderStatusChanged(orderStatusChangedEvent, "OrderStatusChangedEvent");
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("Should skip OrderStatusChangedEvent when eventType header does not match")
+    void onOrderStatusChanged_SkipsWrongEventType() {
+        consumer.onOrderStatusChanged(orderStatusChangedEvent, "OrderCreatedEvent");
+
+        verifyNoInteractions(idempotencyService);
+        verifyNoInteractions(emailService);
     }
 }

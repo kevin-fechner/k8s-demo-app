@@ -6,6 +6,7 @@ import com.demo.productservice.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +23,10 @@ public class OrderEventConsumer {
             groupId = "product-service",
             containerFactory = "orderCreatedKafkaListenerContainerFactory"
     )
-    public void onOrderCreated(@Payload OrderCreatedEvent event) {
+    public void onOrderCreated(@Payload OrderCreatedEvent event, @Header(value = "eventType", required = false) String eventType) {
+        if (!"OrderCreatedEvent".equals(eventType)) {
+            return;
+        }
         String eventId = "order-created-" + event.orderId();
         if (!idempotencyService.tryProcess(eventId, "OrderCreatedEvent")) {
             return;
