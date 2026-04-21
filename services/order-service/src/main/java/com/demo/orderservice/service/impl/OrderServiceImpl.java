@@ -84,7 +84,9 @@ public class OrderServiceImpl implements OrderService {
                 saved.getTotalAmount(),
                 LocalDateTime.now()
         );
+        log.info("About to publish OrderCreatedEvent for orderId={}", saved.getId());
         eventPublisher.publishOrderCreated(event);
+        log.info("Published OrderCreatedEvent for orderId={}", saved.getId());
 
         return orderMapper.toResponse(saved);
     }
