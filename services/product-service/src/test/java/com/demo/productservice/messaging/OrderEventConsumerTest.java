@@ -1,6 +1,7 @@
 package com.demo.productservice.messaging;
 
 import com.demo.events.order.OrderCreatedEvent;
+import com.demo.productservice.idempotency.IdempotencyService;
 import com.demo.productservice.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,14 +15,17 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class OrderEventConsumerTest {
 
-    @Mock private ProductService productService;
-    @InjectMocks private OrderEventConsumer consumer;
+    @Mock
+    private ProductService productService;
+    @Mock
+    private IdempotencyService idempotencyService;
+    @InjectMocks
+    private OrderEventConsumer consumer;
 
     private OrderCreatedEvent orderCreatedEvent;
 
@@ -38,9 +42,24 @@ class OrderEventConsumerTest {
     @Test
     @DisplayName("Should delegate OrderCreatedEvent to ProductService.reserveStock")
     void onOrderCreated_DelegatesToReserveStock() {
+        when(idempotencyService.tryProcess(anyString(), anyString())).thenReturn(true);
+
         consumer.onOrderCreated(orderCreatedEvent);
 
         verify(productService).reserveStock(orderCreatedEvent);
         verifyNoMoreInteractions(productService);
+    }
+
+    @Test
+    void onOrderCreated_SkipsDuplicate() {
+        // Arrange
+        when(idempotencyService.tryProcess(anyString(), anyString()))
+                .thenReturn(false);
+
+        // Act
+        consumer.onOrderCreated(orderCreatedEvent);
+
+        // Assert
+        verify(productService, never()).reserveStock(any());
     }
 }
