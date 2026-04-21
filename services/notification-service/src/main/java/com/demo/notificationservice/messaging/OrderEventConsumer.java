@@ -7,6 +7,7 @@ import com.demo.notificationservice.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +24,15 @@ public class OrderEventConsumer {
             groupId = "notification-service-created",
             containerFactory = "orderCreatedKafkaListenerContainerFactory"
     )
-    public void onOrderCreated(@Payload OrderCreatedEvent event) {
+    public void onOrderCreated(
+            @Payload OrderCreatedEvent event,
+            @Header(value = "eventType", required = false) String eventType) {
+
+        if (!"OrderCreatedEvent".equals(eventType)) {
+            log.debug("Skipping message with eventType={} in onOrderCreated", eventType);
+            return;
+        }
+
         String eventId = "order-created-" + event.orderId();
         if (!idempotencyService.tryProcess(eventId, "OrderCreatedEvent")) {
             return;
@@ -37,7 +46,15 @@ public class OrderEventConsumer {
             groupId = "notification-service-status",
             containerFactory = "orderStatusChangedKafkaListenerContainerFactory"
     )
-    public void onOrderStatusChanged(@Payload OrderStatusChangedEvent event) {
+    public void onOrderStatusChanged(
+            @Payload OrderStatusChangedEvent event,
+            @Header(value = "eventType", required = false) String eventType) {
+
+        if (!"OrderStatusChangedEvent".equals(eventType)) {
+            log.debug("Skipping message with eventType={} in onOrderStatusChanged", eventType);
+            return;
+        }
+
         String eventId = "order-status-" + event.orderId() + "-" + event.newStatus();
         if (!idempotencyService.tryProcess(eventId, "OrderStatusChangedEvent")) {
             return;

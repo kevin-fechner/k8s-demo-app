@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -20,12 +21,20 @@ public class OrderEventPublisher {
 
     public void publishOrderCreated(OrderCreatedEvent event) {
         log.info("Publishing OrderCreatedEvent for orderId={}", event.orderId());
-        kafkaTemplate.send(orderEventsTopic, event.orderId().toString(), event);
+        var message = MessageBuilder
+                .withPayload(event)
+                .setHeader("eventType", "OrderCreatedEvent")
+                .build();
+        kafkaTemplate.send(orderEventsTopic, event.orderId().toString(), message);
     }
 
     public void publishOrderStatusChanged(OrderStatusChangedEvent event) {
         log.info("Publishing OrderStatusChangedEvent for orderId={}, status={}→{}",
                 event.orderId(), event.previousStatus(), event.newStatus());
-        kafkaTemplate.send(orderEventsTopic, event.orderId().toString(), event);
+        var message = MessageBuilder
+                .withPayload(event)
+                .setHeader("eventType", "OrderStatusChangedEvent")
+                .build();
+        kafkaTemplate.send(orderEventsTopic, event.orderId().toString(), message);
     }
 }

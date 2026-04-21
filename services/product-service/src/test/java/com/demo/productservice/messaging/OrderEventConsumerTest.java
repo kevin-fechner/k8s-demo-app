@@ -44,7 +44,7 @@ class OrderEventConsumerTest {
     void onOrderCreated_DelegatesToReserveStock() {
         when(idempotencyService.tryProcess(anyString(), anyString())).thenReturn(true);
 
-        consumer.onOrderCreated(orderCreatedEvent);
+        consumer.onOrderCreated(orderCreatedEvent, "OrderCreatedEvent");
 
         verify(productService).reserveStock(orderCreatedEvent);
         verifyNoMoreInteractions(productService);
@@ -57,9 +57,18 @@ class OrderEventConsumerTest {
                 .thenReturn(false);
 
         // Act
-        consumer.onOrderCreated(orderCreatedEvent);
+        consumer.onOrderCreated(orderCreatedEvent, "OrderCreatedEvent");
 
         // Assert
+        verify(productService, never()).reserveStock(any());
+    }
+
+    @Test
+    @DisplayName("Should skip OrderStatusChangedEvent when eventType header does not match")
+    void onOrderStatusChanged_SkipsWrongEventType() {
+        consumer.onOrderCreated(orderCreatedEvent, "OrderStatusChangedEvent");
+
+        verifyNoInteractions(idempotencyService);
         verify(productService, never()).reserveStock(any());
     }
 }
