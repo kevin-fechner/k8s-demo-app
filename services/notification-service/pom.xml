@@ -184,6 +184,7 @@
                             <goals>
                                 <goal>process-aot</goal>
                             </goals>
+                            <phase>prepare-package</phase>
                         </execution>
                     </executions>
                 </plugin>

@@ -1,21 +1,19 @@
-# ─── Stage 1: Build native image ──────────────────────────────────
 FROM ghcr.io/graalvm/native-image-community:21-ol9 AS build
 RUN microdnf install -y maven
 WORKDIR /build
 
-# Build kafka-events first
 COPY kafka-events ./kafka-events
-RUN cd kafka-events && mvn clean install -DskipTests -B
-
-# Build notification-service
 COPY notification-service/pom.xml ./notification-service/pom.xml
-RUN cd notification-service && mvn dependency:go-offline -Pnative -B 2>/dev/null || true
+
+# Install kafka-events AND download notification-service dependencies in one layer
+RUN cd kafka-events && mvn clean install -DskipTests -B && \
+    cd ../notification-service && mvn dependency:go-offline -Pnative -B 2>/dev/null || true
+
 COPY notification-service/src ./notification-service/src
 
-RUN cd notification-service && \
-    mvn clean package -Pnative -DskipTests -B
+# Full native build in one command
+RUN cd notification-service && mvn clean package -Pnative -DskipTests -B
 
-# ─── Stage 2: Minimal runtime ─────────────────────────────────────
 FROM debian:bookworm-slim
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 WORKDIR /app
