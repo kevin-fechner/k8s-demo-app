@@ -28,8 +28,6 @@ public class InventoryEventConsumer {
         String eventType = eventTypeBytes != null
                 ? new String(eventTypeBytes, StandardCharsets.UTF_8)
                 : null;
-        log.info("onStockUpdated called, eventType={}", eventType);
-
         if (!"StockUpdatedEvent".equals(eventType)) {
             log.debug("Skipping message with eventType={}", eventType);
             return;
@@ -49,7 +47,6 @@ public class InventoryEventConsumer {
         String eventType = eventTypeBytes != null
                 ? new String(eventTypeBytes, StandardCharsets.UTF_8)
                 : null;
-        log.info("onStockInsufficient called, eventType={}", eventType);
         if (!"StockInsufficientEvent".equals(eventType)) {
             log.debug("Skipping message with eventType={}", eventType);
             return;
