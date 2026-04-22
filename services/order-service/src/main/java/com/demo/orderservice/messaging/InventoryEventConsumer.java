@@ -6,8 +6,11 @@ import com.demo.orderservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Component
@@ -21,7 +24,17 @@ public class InventoryEventConsumer {
             groupId = "order-service",
             containerFactory = "stockUpdatedKafkaListenerContainerFactory"
     )
-    public void onStockUpdated(@Payload StockUpdatedEvent event) {
+    public void onStockUpdated(@Payload StockUpdatedEvent event, @Header(value = "eventType", required = false) byte[] eventTypeBytes) {
+        String eventType = eventTypeBytes != null
+                ? new String(eventTypeBytes, StandardCharsets.UTF_8)
+                : null;
+        log.info("onStockUpdated called, eventType={}", eventType);
+
+        if (!"StockUpdatedEvent".equals(eventType)) {
+            log.debug("Skipping message with eventType={}", eventType);
+            return;
+        }
+
         log.info("Stock confirmed for orderId={}, product={}, remaining={}",
                 event.orderId(), event.productId(), event.remainingStock());
         orderService.confirmOrder(event.orderId());
@@ -32,7 +45,16 @@ public class InventoryEventConsumer {
             groupId = "order-service-insufficient",
             containerFactory = "stockInsufficientKafkaListenerContainerFactory"
     )
-    public void onStockInsufficient(@Payload StockInsufficientEvent event) {
+    public void onStockInsufficient(@Payload StockInsufficientEvent event, @Header(value = "eventType", required = false) byte[] eventTypeBytes) {
+        String eventType = eventTypeBytes != null
+                ? new String(eventTypeBytes, StandardCharsets.UTF_8)
+                : null;
+        log.info("onStockInsufficient called, eventType={}", eventType);
+        if (!"StockInsufficientEvent".equals(eventType)) {
+            log.debug("Skipping message with eventType={}", eventType);
+            return;
+        }
+
         log.warn("Stock insufficient for orderId={}, product={}, requested={}, available={}",
                 event.orderId(), event.productId(),
                 event.requestedQuantity(), event.availableStock());

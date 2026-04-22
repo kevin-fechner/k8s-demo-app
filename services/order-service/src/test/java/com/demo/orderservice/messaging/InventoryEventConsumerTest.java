@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 import static org.mockito.Mockito.verify;
@@ -41,7 +42,7 @@ class InventoryEventConsumerTest {
     @Test
     @DisplayName("Should call confirmOrder when stock is successfully reserved")
     void onStockUpdated_DelegatesToConfirmOrder() {
-        consumer.onStockUpdated(stockUpdatedEvent);
+        consumer.onStockUpdated(stockUpdatedEvent, "StockUpdatedEvent".getBytes(StandardCharsets.UTF_8));
 
         verify(orderService).confirmOrder(1L);
         verifyNoMoreInteractions(orderService);
@@ -50,7 +51,7 @@ class InventoryEventConsumerTest {
     @Test
     @DisplayName("Should call cancelOrder when stock is insufficient")
     void onStockInsufficient_DelegatesToCancelOrder() {
-        consumer.onStockInsufficient(stockInsufficientEvent);
+        consumer.onStockInsufficient(stockInsufficientEvent, "StockInsufficientEvent".getBytes(StandardCharsets.UTF_8));
 
         verify(orderService).cancelOrder(1L);
         verifyNoMoreInteractions(orderService);

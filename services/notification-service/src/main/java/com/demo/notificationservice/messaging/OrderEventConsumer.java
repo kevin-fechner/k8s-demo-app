@@ -11,6 +11,8 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -26,8 +28,10 @@ public class OrderEventConsumer {
     )
     public void onOrderCreated(
             @Payload OrderCreatedEvent event,
-            @Header(value = "eventType", required = false) String eventType) {
-
+            @Header(value = "eventType", required = false) byte[] eventTypeBytes) {
+        String eventType = eventTypeBytes != null
+                ? new String(eventTypeBytes, StandardCharsets.UTF_8)
+                : null;
         if (!"OrderCreatedEvent".equals(eventType)) {
             log.debug("Skipping message with eventType={} in onOrderCreated", eventType);
             return;
@@ -48,8 +52,10 @@ public class OrderEventConsumer {
     )
     public void onOrderStatusChanged(
             @Payload OrderStatusChangedEvent event,
-            @Header(value = "eventType", required = false) String eventType) {
-
+            @Header(value = "eventType", required = false) byte[] eventTypeBytes) {
+        String eventType = eventTypeBytes != null
+                ? new String(eventTypeBytes, StandardCharsets.UTF_8)
+                : null;
         if (!"OrderStatusChangedEvent".equals(eventType)) {
             log.debug("Skipping message with eventType={} in onOrderStatusChanged", eventType);
             return;

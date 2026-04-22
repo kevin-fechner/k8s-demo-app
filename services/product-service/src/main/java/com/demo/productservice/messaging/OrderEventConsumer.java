@@ -10,6 +10,8 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -23,7 +25,11 @@ public class OrderEventConsumer {
             groupId = "product-service",
             containerFactory = "orderCreatedKafkaListenerContainerFactory"
     )
-    public void onOrderCreated(@Payload OrderCreatedEvent event, @Header(value = "eventType", required = false) String eventType) {
+    public void onOrderCreated(@Payload OrderCreatedEvent event,
+                               @Header(value = "eventType", required = false) byte[] eventTypeBytes) {
+        String eventType = eventTypeBytes != null
+                ? new String(eventTypeBytes, StandardCharsets.UTF_8)
+                : null;
         if (!"OrderCreatedEvent".equals(eventType)) {
             return;
         }
