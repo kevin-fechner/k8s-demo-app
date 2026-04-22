@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -53,7 +54,7 @@ class OrderEventConsumerTest {
     void onOrderCreated_DelegatesToEmailService() {
         when(idempotencyService.tryProcess(anyString(), anyString())).thenReturn(true);
 
-        consumer.onOrderCreated(orderCreatedEvent, "OrderCreatedEvent");
+        consumer.onOrderCreated(orderCreatedEvent, "OrderCreatedEvent".getBytes(StandardCharsets.UTF_8));
 
         verify(emailService).sendOrderConfirmation(orderCreatedEvent);
         verifyNoMoreInteractions(emailService);
@@ -64,7 +65,7 @@ class OrderEventConsumerTest {
     void onOrderCreated_SkipsWhenAlreadyProcessed() {
         when(idempotencyService.tryProcess(anyString(), anyString())).thenReturn(false);
 
-        consumer.onOrderCreated(orderCreatedEvent, "OrderCreatedEvent");
+        consumer.onOrderCreated(orderCreatedEvent, "OrderCreatedEvent".getBytes(StandardCharsets.UTF_8));
 
         verifyNoInteractions(emailService);
     }
@@ -72,7 +73,7 @@ class OrderEventConsumerTest {
     @Test
     @DisplayName("Should skip OrderCreatedEvent when eventType header does not match")
     void onOrderCreated_SkipsWrongEventType() {
-        consumer.onOrderCreated(orderCreatedEvent, "OrderStatusChangedEvent");
+        consumer.onOrderCreated(orderCreatedEvent, "OrderStatusChangedEvent".getBytes(StandardCharsets.UTF_8));
 
         verifyNoInteractions(idempotencyService);
         verifyNoInteractions(emailService);
@@ -83,7 +84,7 @@ class OrderEventConsumerTest {
     void onOrderStatusChanged_DelegatesToEmailService() {
         when(idempotencyService.tryProcess(anyString(), anyString())).thenReturn(true);
 
-        consumer.onOrderStatusChanged(orderStatusChangedEvent, "OrderStatusChangedEvent");
+        consumer.onOrderStatusChanged(orderStatusChangedEvent, "OrderStatusChangedEvent".getBytes(StandardCharsets.UTF_8));
 
         verify(emailService).sendStatusUpdate(orderStatusChangedEvent);
         verifyNoMoreInteractions(emailService);
@@ -94,7 +95,7 @@ class OrderEventConsumerTest {
     void onOrderStatusChanged_SkipsWhenAlreadyProcessed() {
         when(idempotencyService.tryProcess(anyString(), anyString())).thenReturn(false);
 
-        consumer.onOrderStatusChanged(orderStatusChangedEvent, "OrderStatusChangedEvent");
+        consumer.onOrderStatusChanged(orderStatusChangedEvent, "OrderStatusChangedEvent".getBytes(StandardCharsets.UTF_8));
 
         verifyNoInteractions(emailService);
     }
@@ -102,7 +103,7 @@ class OrderEventConsumerTest {
     @Test
     @DisplayName("Should skip OrderStatusChangedEvent when eventType header does not match")
     void onOrderStatusChanged_SkipsWrongEventType() {
-        consumer.onOrderStatusChanged(orderStatusChangedEvent, "OrderCreatedEvent");
+        consumer.onOrderStatusChanged(orderStatusChangedEvent, "OrderCreatedEvent".getBytes(StandardCharsets.UTF_8));
 
         verifyNoInteractions(idempotencyService);
         verifyNoInteractions(emailService);

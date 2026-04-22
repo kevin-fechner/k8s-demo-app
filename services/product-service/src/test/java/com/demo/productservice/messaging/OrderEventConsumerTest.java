@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -44,7 +45,7 @@ class OrderEventConsumerTest {
     void onOrderCreated_DelegatesToReserveStock() {
         when(idempotencyService.tryProcess(anyString(), anyString())).thenReturn(true);
 
-        consumer.onOrderCreated(orderCreatedEvent, "OrderCreatedEvent");
+        consumer.onOrderCreated(orderCreatedEvent, "OrderCreatedEvent".getBytes(StandardCharsets.UTF_8));
 
         verify(productService).reserveStock(orderCreatedEvent);
         verifyNoMoreInteractions(productService);
@@ -57,7 +58,7 @@ class OrderEventConsumerTest {
                 .thenReturn(false);
 
         // Act
-        consumer.onOrderCreated(orderCreatedEvent, "OrderCreatedEvent");
+        consumer.onOrderCreated(orderCreatedEvent, "OrderCreatedEvent".getBytes(StandardCharsets.UTF_8));
 
         // Assert
         verify(productService, never()).reserveStock(any());
@@ -66,7 +67,7 @@ class OrderEventConsumerTest {
     @Test
     @DisplayName("Should skip OrderStatusChangedEvent when eventType header does not match")
     void onOrderStatusChanged_SkipsWrongEventType() {
-        consumer.onOrderCreated(orderCreatedEvent, "OrderStatusChangedEvent");
+        consumer.onOrderCreated(orderCreatedEvent, "OrderStatusChangedEvent".getBytes(StandardCharsets.UTF_8));
 
         verifyNoInteractions(idempotencyService);
         verify(productService, never()).reserveStock(any());
