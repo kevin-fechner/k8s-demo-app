@@ -1,0 +1,67 @@
+name: Notification Service Native CI/CD
+
+on:
+  workflow_dispatch:  # Manual trigger only
+  push:
+    branches: [ native ]  # Only on a dedicated branch
+    paths:
+      - 'services/notification-service/**'
+      - 'services/kafka-events/**'
+      - '.github/workflows/notification-service-native.yml'
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/k8s-demo-app/notification-service-native
+  JAVA_VERSION: '21'
+
+jobs:
+  build-native:
+    name: Build Native Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up GraalVM
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: graalvm-community
+          cache: maven
+
+      - name: Build kafka-events module
+        run: |
+          cd services/kafka-events
+          mvn clean install -DskipTests -B
+
+      - name: Build native image
+        working-directory: services/notification-service
+        run: |
+          mvn clean package -Pnative -DskipTests -B
+          ls -lh target/notification-service
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: services/notification-service
+          file: services/notification-service/Dockerfile.native
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Report binary size
+        working-directory: services/notification-service
+        run: |
+          echo "### Native Binary Stats" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Binary size | $(du -sh target/notification-service | cut -f1) |" >> $GITHUB_STEP_SUMMARY

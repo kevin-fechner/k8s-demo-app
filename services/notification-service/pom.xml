@@ -24,6 +24,12 @@
         <sonar.organization>kevin-fechner</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.sources>src/main/java,src/main/resources</sonar.sources>
+        <!-- CVE-2026-34483 -->
+        <tomcat.version>11.0.21</tomcat.version>
+        <!-- CVE-2026-22740, CVE-2026-22741 -->
+        <spring-framework.version>7.0.7</spring-framework.version>
+        <!-- CVE-2026-40477, CVE-2026-40478 -->
+        <thymeleaf.version>3.1.5.RELEASE</thymeleaf.version>
     </properties>
 
     <dependencies>
@@ -123,6 +129,12 @@
                 <artifactId>scala-library</artifactId>
                 <version>2.13.9</version>
             </dependency>
+            <!-- GHSA-2m67-wjpj-xhg9 -->
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>3.1.1</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -140,6 +152,43 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <configuration>
+                    <imageName>notification-service</imageName>
+                    <metadataRepository>
+                        <enabled>true</enabled>
+                    </metadataRepository>
+                    <buildArgs>
+                        <buildArg>--no-fallback</buildArg>
+                        <buildArg>-H:+ReportExceptionStackTraces</buildArg>
+                    </buildArgs>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
