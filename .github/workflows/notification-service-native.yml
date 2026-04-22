@@ -22,11 +22,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up GraalVM
-        uses: actions/setup-java@v4
+        uses: graalvm/setup-graalvm@v1
         with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: graalvm-community
-          cache: maven
+            java-version: ${{ env.JAVA_VERSION }}
+            distribution: graalvm-community
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            native-image-job-reports: true
 
       - name: Build kafka-events module
         run: |
