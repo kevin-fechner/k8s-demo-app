@@ -12,10 +12,8 @@ COPY notification-service/pom.xml ./notification-service/pom.xml
 RUN cd notification-service && mvn dependency:go-offline -Pnative -B 2>/dev/null || true
 COPY notification-service/src ./notification-service/src
 
-# Run AOT processing first, then native compile
 RUN cd notification-service && \
-    mvn spring-boot:process-aot -DskipTests -B && \
-    mvn native:compile-no-fork -DskipTests -B
+    mvn clean package -Pnative -DskipTests -B
 
 # ─── Stage 2: Minimal runtime ─────────────────────────────────────
 FROM debian:bookworm-slim
