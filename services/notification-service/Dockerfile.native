@@ -11,7 +11,11 @@ RUN cd kafka-events && mvn clean install -DskipTests -B
 COPY notification-service/pom.xml ./notification-service/pom.xml
 RUN cd notification-service && mvn dependency:go-offline -Pnative -B 2>/dev/null || true
 COPY notification-service/src ./notification-service/src
-RUN cd notification-service && mvn clean package -Pnative -DskipTests -B
+
+# Run AOT processing first, then native compile
+RUN cd notification-service && \
+    mvn spring-boot:process-aot -DskipTests -B && \
+    mvn native:compile-no-fork -DskipTests -B
 
 # ─── Stage 2: Minimal runtime ─────────────────────────────────────
 FROM debian:bookworm-slim
