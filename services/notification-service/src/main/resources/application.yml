@@ -43,6 +43,8 @@ server:
 
 management:
   health:
+    kafka:
+      enabled: true
     mail:
       enabled: false
   endpoints:

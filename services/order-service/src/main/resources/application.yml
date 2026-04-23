@@ -43,6 +43,9 @@ server:
   port: 8082
 
 management:
+  health:
+    kafka:
+      enabled: true
   endpoints:
     web:
       exposure:
