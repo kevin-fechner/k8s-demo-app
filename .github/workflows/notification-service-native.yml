@@ -37,7 +37,8 @@ jobs:
       - name: Build native image
         working-directory: services/notification-service
         run: |
-          mvn clean package -Pnative -DskipTests -B
+          mvn spring-boot:process-aot -DskipTests -B
+          mvn native:compile-no-fork -DskipTests -B
           ls -lh target/notification-service
 
       - name: Set up Docker Buildx

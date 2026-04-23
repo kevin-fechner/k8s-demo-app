@@ -11,8 +11,10 @@ RUN cd kafka-events && mvn clean install -DskipTests -B && \
 
 COPY notification-service/src ./notification-service/src
 
-# Full native build in one command
-RUN cd notification-service && mvn clean package -Pnative -DskipTests -B
+# Run AOT processing first to generate initializer classes, then compile native image
+RUN cd notification-service && \
+    mvn spring-boot:process-aot -DskipTests -B && \
+    mvn native:compile-no-fork -DskipTests -B
 
 FROM debian:bookworm-slim
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
