@@ -2,6 +2,8 @@ package com.demo.notificationservice.config;
 
 import com.demo.events.order.OrderCreatedEvent;
 import com.demo.events.order.OrderStatusChangedEvent;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +39,15 @@ public class KafkaConfig {
         var factory = new ConcurrentKafkaListenerContainerFactory<String, T>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(props));
         return factory;
+    }
+
+    @Bean(destroyMethod = "close")
+    public AdminClient kafkaAdminClient() {
+        return AdminClient.create(Map.of(
+                AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
+                AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, "3000",
+                AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG, "5000"
+        ));
     }
 
     @Bean
