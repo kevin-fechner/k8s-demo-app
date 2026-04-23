@@ -205,6 +205,29 @@ Order status values: `PENDING`, `CONFIRMED`, `SHIPPED`, `DELIVERED`, `CANCELLED`
 
 ---
 
+## Health Dashboard
+
+A real-time dashboard at http://demo-app.local/health shows the status of all services, refreshing every 10 seconds.
+
+| Metric | Description |
+|---|---|
+| **Status** | UP / DOWN for each service |
+| **Uptime** | How long the service has been running |
+| **Memory** | JVM heap usage |
+| **Kafka** | Kafka consumer connection status |
+| **Database** | PostgreSQL connection status |
+
+The dashboard calls Spring Boot Actuator endpoints exposed through the API Gateway:
+
+| Endpoint | Service |
+|---|---|
+| `/api/gateway/actuator/health` | API Gateway |
+| `/api/order-service/actuator/health` | Order Service |
+| `/api/product-service/actuator/health` | Product Service |
+| `/api/notification-service/actuator/health` | Notification Service |
+
+---
+
 ## Local Development
 
 ### Prerequisites
@@ -382,6 +405,7 @@ echo "127.0.0.1 mailhog.local" | sudo tee -a /etc/hosts
 | URL | Description |
 |---|---|
 | http://demo-app.local | Angular frontend |
+| http://demo-app.local/health | System health dashboard |
 | http://demo-app.local/api/products | Products API |
 | http://demo-app.local/api/orders | Orders API |
 | https://argocd.local | ArgoCD dashboard |
