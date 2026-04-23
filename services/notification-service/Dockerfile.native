@@ -11,11 +11,8 @@ RUN cd kafka-events && mvn clean install -DskipTests -B && \
 
 COPY notification-service/src ./notification-service/src
 
-# compile → AOT processing → native compile
 RUN cd notification-service && \
-    mvn compile -DskipTests -B && \
-    mvn spring-boot:process-aot -DskipTests -B && \
-    mvn native:compile-no-fork -DskipTests -B
+    mvn compile spring-boot:process-aot native:compile-no-fork -DskipTests -B
 
 FROM debian:bookworm-slim
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
