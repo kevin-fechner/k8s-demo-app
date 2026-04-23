@@ -8,3 +8,4 @@ metadata:
 data:
   PRODUCT_SERVICE_URL: {{ .Values.env.PRODUCT_SERVICE_URL | quote }}
   ORDER_SERVICE_URL: {{ .Values.env.ORDER_SERVICE_URL | quote }}
+  NOTIFICATION_SERVICE_URL: {{ .Values.env.NOTIFICATION_SERVICE_URL | quote }}

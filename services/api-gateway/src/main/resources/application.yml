@@ -21,6 +21,32 @@ spring:
               predicates:
                 - Path=/api/orders/**
 
+            - id: notification-service
+              uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/notifications/**
+
+            # ─── Actuator routes ──────────────────────────────────
+            - id: product-service-actuator
+              uri: ${PRODUCT_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/product-service/actuator/**
+
+            - id: order-service-actuator
+              uri: ${ORDER_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/order-service/actuator/**
+
+            - id: notification-service-actuator
+              uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/notification-service/actuator/**
+
+            - id: api-gateway-actuator
+              uri: http://localhost:8080
+              predicates:
+                - Path=/api/gateway/actuator/**
+
           globalcors:
             cors-configurations:
               '[/**]':

@@ -27,6 +27,7 @@ autoscaling:
 env:
   PRODUCT_SERVICE_URL: "http://product-service.demo-app.svc.cluster.local"
   ORDER_SERVICE_URL: "http://order-service.demo-app.svc.cluster.local"
+  NOTIFICATION_SERVICE_URL: "http://notification-service.demo-app.svc.cluster.local"
 
 readinessProbe:
   path: /actuator/health/readiness
