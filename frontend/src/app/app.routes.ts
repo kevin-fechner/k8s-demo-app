@@ -1,7 +1,7 @@
-import { Routes } from '@angular/router';
+import {Routes} from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'products', pathMatch: 'full' },
+  {path: '', redirectTo: 'products', pathMatch: 'full'},
   {
     path: 'products',
     loadComponent: () =>
@@ -14,5 +14,11 @@ export const routes: Routes = [
       import('./features/orders/order-list/order-list.component')
         .then(m => m.OrderListComponent)
   },
-  { path: '**', redirectTo: 'products' }
+  {
+    path: 'health',
+    loadComponent: () =>
+      import('./features/health/health-dashboard/health-dashboard')
+        .then(m => m.HealthDashboardComponent)
+  },
+  {path: '**', redirectTo: 'products'}
 ];

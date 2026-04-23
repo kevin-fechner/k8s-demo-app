@@ -1,0 +1,72 @@
+<div class="health-dashboard">
+  <div class="dashboard-header">
+    <div class="title-section">
+      <h1>System Health</h1>
+      <span class="overall-status" [class.up]="allUp()" [class.down]="!allUp()">
+        {{ allUp() ? '● All Systems Operational' : '● Degraded' }}
+      </span>
+    </div>
+    <span class="last-updated">
+      Last updated: {{ lastUpdated() | date:'HH:mm:ss' }}
+    </span>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <span>Checking services...</span>
+    </div>
+  } @else {
+    <div class="services-grid">
+      @for (svc of services(); track svc.name) {
+        <div class="service-card"
+             [class.up]="svc.status === 'UP'"
+             [class.down]="svc.status === 'DOWN'"
+             [class.unknown]="svc.status === 'UNKNOWN'">
+          <div class="card-header">
+            <span class="status-dot" [class.up]="svc.status === 'UP'"
+                  [class.down]="svc.status !== 'UP'"></span>
+            <h3>{{ svc.name }}</h3>
+            <span class="status-badge" [class.up]="svc.status === 'UP'"
+                  [class.down]="svc.status !== 'UP'">
+              {{ svc.status }}
+            </span>
+          </div>
+          <div class="card-metrics">
+            @if (svc.uptime) {
+              <div class="metric">
+                <span class="metric-label">Uptime</span>
+                <span class="metric-value">{{ svc.uptime }}</span>
+              </div>
+            }
+            @if (svc.memoryUsed) {
+              <div class="metric">
+                <span class="metric-label">Memory</span>
+                <span class="metric-value">{{ svc.memoryUsed }}</span>
+              </div>
+            }
+            @if (svc.kafka) {
+              <div class="metric">
+                <span class="metric-label">Kafka</span>
+                <span class="metric-value" [class.up]="svc.kafka === 'UP'"
+                      [class.down]="svc.kafka !== 'UP'">
+                  {{ svc.kafka }}
+                </span>
+              </div>
+
+            }
+            @if (svc.db) {
+              <div class="metric">
+                <span class="metric-label">Database</span>
+                <span class="metric-value" [class.up]="svc.db === 'UP'"
+                      [class.down]="svc.db !== 'UP'">
+                {{ svc.db }}
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

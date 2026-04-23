@@ -21,6 +21,11 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
            [routerLinkActiveOptions]="{exact: false}">
           Orders
         </a>
+        <a routerLink="/health"
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{exact: false}">
+          Health
+        </a>
       </div>
     </nav>
   `,
