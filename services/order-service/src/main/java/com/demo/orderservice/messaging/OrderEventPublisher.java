@@ -8,7 +8,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -26,26 +25,26 @@ public class OrderEventPublisher {
 
     public void publishOrderCreated(OrderCreatedEvent event) {
         log.info("Publishing OrderCreatedEvent for orderId={}", event.orderId());
-        var record = new ProducerRecord<String, Object>(
+        var producerRecord = new ProducerRecord<String, Object>(
                 orderEventsTopic,
                 null,
                 event.orderId().toString(),
                 event,
                 List.of(new RecordHeader("eventType", "OrderCreatedEvent".getBytes(StandardCharsets.UTF_8)))
         );
-        kafkaTemplate.send(record);
+        kafkaTemplate.send(producerRecord);
     }
 
     public void publishOrderStatusChanged(OrderStatusChangedEvent event) {
         log.info("Publishing OrderStatusChangedEvent for orderId={}, status={}→{}",
                 event.orderId(), event.previousStatus(), event.newStatus());
-        var record = new ProducerRecord<String, Object>(
+        var producerRecord = new ProducerRecord<String, Object>(
                 orderEventsTopic,
                 null,
                 event.orderId().toString(),
                 event,
                 List.of(new RecordHeader("eventType", "OrderStatusChangedEvent".getBytes(StandardCharsets.UTF_8)))
         );
-        kafkaTemplate.send(record);
+        kafkaTemplate.send(producerRecord);
     }
 }

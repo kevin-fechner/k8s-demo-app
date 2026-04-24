@@ -26,7 +26,7 @@ public class InventoryEventPublisher {
     public void publishStockUpdated(StockUpdatedEvent event) {
         log.info("Publishing StockUpdatedEvent for orderId={}, productId={}, remaining={}",
                 event.orderId(), event.productId(), event.remainingStock());
-        var record = new ProducerRecord<String, Object>(
+        var producerRecord = new ProducerRecord<String, Object>(
                 inventoryEventsTopic,
                 null,
                 event.orderId().toString(),
@@ -34,20 +34,20 @@ public class InventoryEventPublisher {
                 List.of(new RecordHeader("eventType", "StockUpdatedEvent".getBytes(StandardCharsets.UTF_8)))
         );
 
-        kafkaTemplate.send(record);
+        kafkaTemplate.send(producerRecord);
     }
 
     public void publishStockInsufficient(StockInsufficientEvent event) {
         log.warn("Publishing StockInsufficientEvent for orderId={}, productId={}, requested={}, available={}",
                 event.orderId(), event.productId(),
                 event.requestedQuantity(), event.availableStock());
-        var record = new ProducerRecord<String, Object>(
+        var producerRecord = new ProducerRecord<String, Object>(
                 inventoryEventsTopic,
                 null,
                 event.orderId().toString(),
                 event,
                 List.of(new RecordHeader("eventType", "StockInsufficientEvent".getBytes(StandardCharsets.UTF_8)))
         );
-        kafkaTemplate.send(record);
+        kafkaTemplate.send(producerRecord);
     }
 }

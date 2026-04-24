@@ -5,8 +5,8 @@
     <style>
         body { font-family: Arial, sans-serif; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #2196F3; color: white; padding: 15px; border-radius: 4px; }
-        .status { font-size: 1.2em; font-weight: bold; color: #2196F3; margin: 20px 0; }
+        .header { background-color: #014693; color: white; padding: 15px; border-radius: 4px; }
+        .status { font-size: 1.2em; font-weight: bold; color: #014693; margin: 20px 0; }
         .cancelled { color: #f44336; }
         .delivered { color: #4CAF50; }
     </style>
@@ -26,7 +26,7 @@
     <p th:if="${newStatus == 'CONFIRMED'}">Great news — your order has been confirmed and is being prepared!</p>
     <p th:if="${newStatus == 'SHIPPED'}">Your order is on its way!</p>
     <p th:if="${newStatus == 'DELIVERED'}">Your order has been delivered. Enjoy!</p>
-    <p th:if="${newStatus == 'CANCELLED'}">Your order has been cancelled. If you have questions, please contact support.</p>
+    <p th:if="${newStatus == 'CANCELLED'}">Your order has been canceled. If you have questions, please contact support.</p>
 </div>
 </body>
 </html>
