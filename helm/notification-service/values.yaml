@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: ghcr.io/kevin-fechner/k8s-demo-app/notification-service
   pullPolicy: IfNotPresent
-  tag: "sha-1ea876f"
+  tag: "sha-a2ea6ac"
 
 service:
   type: ClusterIP
