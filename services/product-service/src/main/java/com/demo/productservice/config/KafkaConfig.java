@@ -1,6 +1,8 @@
 package com.demo.productservice.config;
 
 import com.demo.events.order.OrderCreatedEvent;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -23,6 +25,15 @@ public class KafkaConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
+
+    @Bean(destroyMethod = "close")
+    public AdminClient kafkaAdminClient() {
+        return AdminClient.create(Map.of(
+                AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
+                AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, "3000",
+                AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG, "5000"
+        ));
+    }
 
     // ─── Producer ─────────────────────────────────────────────────────────────
 
