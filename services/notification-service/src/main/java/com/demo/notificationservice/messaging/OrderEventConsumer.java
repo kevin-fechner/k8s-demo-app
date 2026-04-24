@@ -3,7 +3,7 @@ package com.demo.notificationservice.messaging;
 import com.demo.events.order.OrderCreatedEvent;
 import com.demo.events.order.OrderStatusChangedEvent;
 import com.demo.notificationservice.idempotency.IdempotencyService;
-import com.demo.notificationservice.service.EmailService;
+import com.demo.notificationservice.service.impl.EmailServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class OrderEventConsumer {
 
-    private final EmailService emailService;
+    private final EmailServiceImpl emailServiceImpl;
     private final IdempotencyService idempotencyService;
 
     @KafkaListener(
@@ -42,7 +42,7 @@ public class OrderEventConsumer {
             return;
         }
         log.info("Received OrderCreatedEvent for orderId={}", event.orderId());
-        emailService.sendOrderConfirmation(event);
+        emailServiceImpl.sendOrderConfirmation(event);
     }
 
     @KafkaListener(
@@ -67,6 +67,6 @@ public class OrderEventConsumer {
         }
         log.info("Received OrderStatusChangedEvent for orderId={}, status={}→{}",
                 event.orderId(), event.previousStatus(), event.newStatus());
-        emailService.sendStatusUpdate(event);
+        emailServiceImpl.sendStatusUpdate(event);
     }
 }

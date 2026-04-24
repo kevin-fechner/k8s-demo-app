@@ -2,6 +2,7 @@ package com.demo.notificationservice.service;
 
 import com.demo.events.order.OrderCreatedEvent;
 import com.demo.events.order.OrderStatusChangedEvent;
+import com.demo.notificationservice.service.impl.EmailServiceImpl;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
@@ -37,18 +38,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class EmailServiceTest {
+class EmailServiceImplTest {
 
     @Mock private JavaMailSender mailSender;
     @Mock private TemplateEngine templateEngine;
-    @InjectMocks private EmailService emailService;
+    @InjectMocks private EmailServiceImpl emailServiceImpl;
 
     private OrderCreatedEvent orderCreatedEvent;
     private OrderStatusChangedEvent orderStatusChangedEvent;
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(emailService, "fromAddress", "noreply@demo-app.local");
+        ReflectionTestUtils.setField(emailServiceImpl, "fromAddress", "noreply@demo-app.local");
         when(mailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));
         when(templateEngine.process(anyString(), any(Context.class))).thenReturn("<html>test</html>");
 
@@ -69,7 +70,7 @@ class EmailServiceTest {
     @Test
     @DisplayName("Should process order-created template with correct variables")
     void sendOrderConfirmation_ProcessesOrderCreatedTemplate() {
-        emailService.sendOrderConfirmation(orderCreatedEvent);
+        emailServiceImpl.sendOrderConfirmation(orderCreatedEvent);
 
         ArgumentCaptor<Context> contextCaptor = ArgumentCaptor.forClass(Context.class);
         verify(templateEngine).process(eq("order-created"), contextCaptor.capture());
@@ -83,7 +84,7 @@ class EmailServiceTest {
     @Test
     @DisplayName("Should send confirmation email to customer with correct subject")
     void sendOrderConfirmation_SendsEmailWithCorrectRecipientAndSubject() throws Exception {
-        emailService.sendOrderConfirmation(orderCreatedEvent);
+        emailServiceImpl.sendOrderConfirmation(orderCreatedEvent);
 
         ArgumentCaptor<MimeMessage> messageCaptor = ArgumentCaptor.forClass(MimeMessage.class);
         verify(mailSender).send(messageCaptor.capture());
@@ -96,7 +97,7 @@ class EmailServiceTest {
     @Test
     @DisplayName("Should process order-status-changed template with correct variables")
     void sendStatusUpdate_ProcessesOrderStatusChangedTemplate() {
-        emailService.sendStatusUpdate(orderStatusChangedEvent);
+        emailServiceImpl.sendStatusUpdate(orderStatusChangedEvent);
 
         ArgumentCaptor<Context> contextCaptor = ArgumentCaptor.forClass(Context.class);
         verify(templateEngine).process(eq("order-status-changed"), contextCaptor.capture());
@@ -110,7 +111,7 @@ class EmailServiceTest {
     @Test
     @DisplayName("Should send status update email to customer with correct subject")
     void sendStatusUpdate_SendsEmailWithCorrectRecipientAndSubject() throws Exception {
-        emailService.sendStatusUpdate(orderStatusChangedEvent);
+        emailServiceImpl.sendStatusUpdate(orderStatusChangedEvent);
 
         ArgumentCaptor<MimeMessage> messageCaptor = ArgumentCaptor.forClass(MimeMessage.class);
         verify(mailSender).send(messageCaptor.capture());
@@ -128,7 +129,7 @@ class EmailServiceTest {
                 .when(brokenMessage).setContent(any(Multipart.class));
         when(mailSender.createMimeMessage()).thenReturn(brokenMessage);
 
-        assertThatNoException().isThrownBy(() -> emailService.sendOrderConfirmation(orderCreatedEvent));
+        assertThatNoException().isThrownBy(() -> emailServiceImpl.sendOrderConfirmation(orderCreatedEvent));
         verify(mailSender, never()).send(any(MimeMessage.class));
     }
 }

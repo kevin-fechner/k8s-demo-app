@@ -10,6 +10,8 @@ import com.demo.orderservice.mapper.OrderMapper;
 import com.demo.orderservice.messaging.OrderEventPublisher;
 import com.demo.orderservice.repository.OrderRepository;
 import com.demo.orderservice.service.OrderService;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final ProductClient productClient;
     private final OrderEventPublisher eventPublisher;
+    private final MeterRegistry meterRegistry;
 
     @Override
     public List<OrderResponse> getAllOrders() {
@@ -69,6 +72,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order saved = orderRepository.save(order);
+        ordersCreatedCounter().increment();
 
         OrderCreatedEvent event = new OrderCreatedEvent(
                 saved.getId(),
@@ -120,6 +124,7 @@ public class OrderServiceImpl implements OrderService {
         String previous = order.getStatus().name();
         order.setStatus(OrderStatus.CONFIRMED);
         Order saved = orderRepository.save(order);
+        ordersConfirmedCounter().increment();
         eventPublisher.publishOrderStatusChanged(new OrderStatusChangedEvent(
                 saved.getId(), saved.getCustomerEmail(), saved.getCustomerName(),
                 previous, saved.getStatus().name(), LocalDateTime.now()
@@ -133,6 +138,7 @@ public class OrderServiceImpl implements OrderService {
         String previous = order.getStatus().name();
         order.setStatus(OrderStatus.CANCELLED);
         Order saved = orderRepository.save(order);
+        ordersCancelledCounter().increment();
         eventPublisher.publishOrderStatusChanged(new OrderStatusChangedEvent(
                 saved.getId(), saved.getCustomerEmail(), saved.getCustomerName(),
                 previous, saved.getStatus().name(), LocalDateTime.now()
@@ -146,5 +152,24 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderNotFoundException(id);
         }
         orderRepository.deleteById(id);
+    }
+
+    // Business metric counters
+    private Counter ordersCreatedCounter() {
+        return Counter.builder("orders.created.total")
+                .description("Total number of orders created")
+                .register(meterRegistry);
+    }
+
+    private Counter ordersConfirmedCounter() {
+        return Counter.builder("orders.confirmed.total")
+                .description("Total number of orders confirmed")
+                .register(meterRegistry);
+    }
+
+    private Counter ordersCancelledCounter() {
+        return Counter.builder("orders.cancelled.total")
+                .description("Total number of orders cancelled")
+                .register(meterRegistry);
     }
 }

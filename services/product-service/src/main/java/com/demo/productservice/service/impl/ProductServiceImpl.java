@@ -11,6 +11,8 @@ import com.demo.productservice.mapper.ProductMapper;
 import com.demo.productservice.messaging.InventoryEventPublisher;
 import com.demo.productservice.repository.ProductRepository;
 import com.demo.productservice.service.ProductService;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final InventoryEventPublisher inventoryEventPublisher;
+    private final MeterRegistry meterRegistry;
 
     @Override
     public List<ProductResponse> getAllProducts() {
@@ -69,6 +72,7 @@ public class ProductServiceImpl implements ProductService {
                 if (product.getStock() >= item.quantity()) {
                     product.setStock(product.getStock() - item.quantity());
                     productRepository.save(product);
+                    stockReservationsCounter().increment();
 
                     inventoryEventPublisher.publishStockUpdated(new StockUpdatedEvent(
                             event.orderId(),
@@ -85,6 +89,7 @@ public class ProductServiceImpl implements ProductService {
                             product.getStock(),
                             java.time.LocalDateTime.now()
                     ));
+                    stockInsufficientCounter().increment();
                 }
 
             }, () -> log.warn("Product not found: {}", item.productId()));
@@ -98,5 +103,17 @@ public class ProductServiceImpl implements ProductService {
             throw new ProductNotFoundException(id);
         }
         productRepository.deleteById(id);
+    }
+
+    private Counter stockReservationsCounter() {
+        return Counter.builder("stock.reservations.total")
+                .description("Total stock reservations")
+                .register(meterRegistry);
+    }
+
+    private Counter stockInsufficientCounter() {
+        return Counter.builder("stock.insufficient.total")
+                .description("Total stock insufficient events")
+                .register(meterRegistry);
     }
 }

@@ -3,7 +3,7 @@ package com.demo.notificationservice.messaging;
 import com.demo.events.order.OrderCreatedEvent;
 import com.demo.events.order.OrderStatusChangedEvent;
 import com.demo.notificationservice.idempotency.IdempotencyService;
-import com.demo.notificationservice.service.EmailService;
+import com.demo.notificationservice.service.impl.EmailServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 class OrderEventConsumerTest {
 
     @Mock
-    private EmailService emailService;
+    private EmailServiceImpl emailServiceImpl;
     @Mock
     private IdempotencyService idempotencyService;
     @InjectMocks
@@ -56,8 +56,8 @@ class OrderEventConsumerTest {
 
         consumer.onOrderCreated(orderCreatedEvent, "OrderCreatedEvent".getBytes(StandardCharsets.UTF_8));
 
-        verify(emailService).sendOrderConfirmation(orderCreatedEvent);
-        verifyNoMoreInteractions(emailService);
+        verify(emailServiceImpl).sendOrderConfirmation(orderCreatedEvent);
+        verifyNoMoreInteractions(emailServiceImpl);
     }
 
     @Test
@@ -67,7 +67,7 @@ class OrderEventConsumerTest {
 
         consumer.onOrderCreated(orderCreatedEvent, "OrderCreatedEvent".getBytes(StandardCharsets.UTF_8));
 
-        verifyNoInteractions(emailService);
+        verifyNoInteractions(emailServiceImpl);
     }
 
     @Test
@@ -76,7 +76,7 @@ class OrderEventConsumerTest {
         consumer.onOrderCreated(orderCreatedEvent, "OrderStatusChangedEvent".getBytes(StandardCharsets.UTF_8));
 
         verifyNoInteractions(idempotencyService);
-        verifyNoInteractions(emailService);
+        verifyNoInteractions(emailServiceImpl);
     }
 
     @Test
@@ -86,8 +86,8 @@ class OrderEventConsumerTest {
 
         consumer.onOrderStatusChanged(orderStatusChangedEvent, "OrderStatusChangedEvent".getBytes(StandardCharsets.UTF_8));
 
-        verify(emailService).sendStatusUpdate(orderStatusChangedEvent);
-        verifyNoMoreInteractions(emailService);
+        verify(emailServiceImpl).sendStatusUpdate(orderStatusChangedEvent);
+        verifyNoMoreInteractions(emailServiceImpl);
     }
 
     @Test
@@ -97,7 +97,7 @@ class OrderEventConsumerTest {
 
         consumer.onOrderStatusChanged(orderStatusChangedEvent, "OrderStatusChangedEvent".getBytes(StandardCharsets.UTF_8));
 
-        verifyNoInteractions(emailService);
+        verifyNoInteractions(emailServiceImpl);
     }
 
     @Test
@@ -106,6 +106,6 @@ class OrderEventConsumerTest {
         consumer.onOrderStatusChanged(orderStatusChangedEvent, "OrderCreatedEvent".getBytes(StandardCharsets.UTF_8));
 
         verifyNoInteractions(idempotencyService);
-        verifyNoInteractions(emailService);
+        verifyNoInteractions(emailServiceImpl);
     }
 }
