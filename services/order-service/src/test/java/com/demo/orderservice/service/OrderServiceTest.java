@@ -11,6 +11,8 @@ import com.demo.orderservice.mapper.OrderMapper;
 import com.demo.orderservice.messaging.OrderEventPublisher;
 import com.demo.orderservice.repository.OrderRepository;
 import com.demo.orderservice.service.impl.OrderServiceImpl;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -27,6 +29,7 @@ class OrderServiceTest {
     @Mock private OrderMapper orderMapper;
     @Mock private ProductClient productClient;
     @Mock private OrderEventPublisher eventPublisher;
+    @Spy private MeterRegistry meterRegistry = new SimpleMeterRegistry();
     @InjectMocks private OrderServiceImpl orderService;
 
     private Order testOrder;

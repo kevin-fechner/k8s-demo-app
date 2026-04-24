@@ -10,6 +10,8 @@ import com.demo.productservice.mapper.ProductMapper;
 import com.demo.productservice.messaging.InventoryEventPublisher;
 import com.demo.productservice.repository.ProductRepository;
 import com.demo.productservice.service.impl.ProductServiceImpl;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -24,15 +26,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
 
-	@Mock
-	private ProductRepository productRepository;
-
-	@Mock
-	private ProductMapper productMapper;
-
-	@Mock
-	private InventoryEventPublisher inventoryEventPublisher;
-
+	@Mock private ProductRepository productRepository;
+	@Mock private ProductMapper productMapper;
+	@Mock private InventoryEventPublisher inventoryEventPublisher;
+	@Spy private MeterRegistry meterRegistry = new SimpleMeterRegistry();
 	@InjectMocks
 	private ProductServiceImpl productService;
 

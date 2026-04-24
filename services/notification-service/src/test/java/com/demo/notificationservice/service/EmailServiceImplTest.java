@@ -3,6 +3,8 @@ package com.demo.notificationservice.service;
 import com.demo.events.order.OrderCreatedEvent;
 import com.demo.events.order.OrderStatusChangedEvent;
 import com.demo.notificationservice.service.impl.EmailServiceImpl;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -42,6 +45,7 @@ class EmailServiceImplTest {
 
     @Mock private JavaMailSender mailSender;
     @Mock private TemplateEngine templateEngine;
+    @Spy private MeterRegistry meterRegistry = new SimpleMeterRegistry();
     @InjectMocks private EmailServiceImpl emailServiceImpl;
 
     private OrderCreatedEvent orderCreatedEvent;
