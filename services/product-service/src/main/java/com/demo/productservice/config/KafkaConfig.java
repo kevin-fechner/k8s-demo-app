@@ -1,6 +1,7 @@
 package com.demo.productservice.config;
 
 import com.demo.events.order.OrderCreatedEvent;
+import io.micrometer.observation.ObservationRegistry;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -74,6 +75,7 @@ public class KafkaConfig {
 
         var factory = new ConcurrentKafkaListenerContainerFactory<String, OrderCreatedEvent>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(props));
+        factory.getContainerProperties().setObservationEnabled(true);
         return factory;
     }
 }
