@@ -46,6 +46,34 @@ kafka:
     order-events: order-events
     inventory-events: inventory-events
 
+resilience4j:
+  circuitbreaker:
+    instances:
+      product-service:
+        # How many calls to track in the sliding window
+        sliding-window-size: 10
+        # How many calls must complete before evaluating
+        minimum-number-of-calls: 5
+        # Open circuit if 50%+ of calls fail
+        failure-rate-threshold: 50
+        # How long to wait before trying again (HALF-OPEN)
+        wait-duration-in-open-state: 10s
+        # How many calls to allow in HALF-OPEN state
+        permitted-number-of-calls-in-half-open-state: 3
+        # Also open on slow calls
+        slow-call-duration-threshold: 2s
+        slow-call-rate-threshold: 50
+        # What exceptions count as failures
+        record-exceptions:
+          - java.lang.Exception
+        # Register health indicator
+        register-health-indicator: true
+  timelimiter:
+    instances:
+      product-service:
+        # Timeout for each call
+        timeout-duration: 3s
+
 server:
   port: 8082
 
@@ -65,6 +93,8 @@ management:
 
   health:
     kafka:
+      enabled: true
+    circuitbreakers:
       enabled: true
 
   metrics:
