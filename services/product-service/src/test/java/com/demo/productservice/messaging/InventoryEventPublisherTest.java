@@ -48,11 +48,11 @@ class InventoryEventPublisherTest {
 
         ArgumentCaptor<ProducerRecord<String, Object>> captor = ArgumentCaptor.forClass(ProducerRecord.class);
         verify(kafkaTemplate).send(captor.capture());
-        ProducerRecord<String, Object> record = captor.getValue();
+        ProducerRecord<String, Object> producerRecord = captor.getValue();
 
-        assertThat(record.topic()).isEqualTo("inventory-events");
-        assertThat(record.key()).isEqualTo("1");
-        String eventType = new String(record.headers().lastHeader("eventType").value(), StandardCharsets.UTF_8);
+        assertThat(producerRecord.topic()).isEqualTo("inventory-events");
+        assertThat(producerRecord.key()).isEqualTo("1");
+        String eventType = new String(producerRecord.headers().lastHeader("eventType").value(), StandardCharsets.UTF_8);
         assertThat(eventType).isEqualTo("StockUpdatedEvent");
     }
 

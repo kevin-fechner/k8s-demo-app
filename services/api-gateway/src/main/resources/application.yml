@@ -2,14 +2,6 @@ spring:
   application:
     name: api-gateway
 
-  otel:
-    exporter:
-      otlp:
-        endpoint: http://tempo.monitoring.svc.cluster.local:4318
-    resource:
-      attributes:
-        service.name: api-gateway
-
   cloud:
     refresh:
       enabled: false
@@ -118,6 +110,11 @@ management:
   tracing:
     sampling:
       probability: 1.0
+
+  otlp:
+    metrics:
+      export:
+        url: http://tempo.monitoring.svc.cluster.local:4318/v1/metrics
 
   opentelemetry:
     tracing:

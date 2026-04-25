@@ -32,14 +32,6 @@ spring:
     listener:
       observation-enabled: true
 
-  otel:
-    exporter:
-      otlp:
-        endpoint: http://tempo.monitoring.svc.cluster.local:4318
-    resource:
-      attributes:
-        service.name: product-service
-
 kafka:
   topics:
     order-events: order-events
@@ -78,6 +70,11 @@ management:
   tracing:
     sampling:
       probability: 1.0
+
+  otlp:
+    metrics:
+      export:
+        url: http://tempo.monitoring.svc.cluster.local:4318/v1/metrics
 
   opentelemetry:
     tracing:
