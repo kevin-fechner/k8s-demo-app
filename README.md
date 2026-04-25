@@ -47,7 +47,7 @@ Deployed via ArgoCD (GitOps) · Built via GitHub Actions + SonarCloud
 | `api-gateway` | Spring Cloud Gateway 2025.1.1 | 8080 | Single entry point, routing, CORS |
 | `product-service` | Spring Boot 4.0.5, JPA, Flyway | 8081 | Product CRUD + stock reservation via Kafka |
 | `order-service` | Spring Boot 4.0.5, JPA, Flyway | 8082 | Order management + Kafka event publisher |
-| `notification-service` | Spring Boot 4.0.5, Thymeleaf, GraalVM native | 8083 | Listens to order events, sends HTML emails |
+| `notification-service` | Spring Boot 4.0.5, Thymeleaf | 8083 | Listens to order events, sends HTML emails |
 | `products-db` | PostgreSQL 16 (CloudNativePG) | 5432 | Products database |
 | `orders-db` | PostgreSQL 16 (CloudNativePG) | 5432 | Orders database |
 | `notifications-db` | PostgreSQL 16 (CloudNativePG) | 5432 | Processed event deduplication store |
@@ -71,7 +71,6 @@ Deployed via ArgoCD (GitOps) · Built via GitHub Actions + SonarCloud
 - **MapStruct 1.6** for DTO mapping
 - **Lombok** for boilerplate reduction
 - **JaCoCo** for test coverage
-- **GraalVM Native Image** for the notification service
 
 ### Shared Library
 - **kafka-events** — shared Java records defining all event types across services (`OrderCreatedEvent`, `OrderStatusChangedEvent`, `StockUpdatedEvent`, `StockInsufficientEvent`)
@@ -204,7 +203,6 @@ k8s-demo-app/
 │   ├── product-service/          # Spring Boot + Kafka consumer
 │   ├── order-service/            # Spring Boot + Kafka producer/consumer
 │   ├── notification-service/     # Spring Boot + Kafka consumer + email
-│   │   └── Dockerfile.native     # GraalVM native image build
 │   └── api-gateway/              # Spring Cloud Gateway
 ├── frontend/                     # Angular 21 application
 ├── helm/                         # Helm charts
@@ -228,7 +226,6 @@ k8s-demo-app/
         ├── product-service.yml
         ├── order-service.yml
         ├── notification-service.yml
-        ├── notification-service-native.yml
         ├── api-gateway.yml
         └── frontend.yml
 ```
@@ -521,8 +518,6 @@ ArgoCD detects Git change
 Deploys new image to cluster ✅
 ```
 
-The notification service has an additional optional workflow (`notification-service-native.yml`) that compiles a GraalVM native binary and reports the resulting binary size in the GitHub Actions job summary.
-
 ### GitHub Secrets Required
 
 | Secret | Description |
@@ -582,10 +577,6 @@ docker build -t order-service:local services/order-service/
 docker build -t notification-service:local services/notification-service/
 docker build -t api-gateway:local services/api-gateway/
 docker build -t frontend:local frontend/
-
-# Build notification-service as a GraalVM native image
-docker build -f services/notification-service/Dockerfile.native \
-  -t notification-service:native services/
 
 # Check image sizes
 docker images | grep -E "product|order|notification|api-gateway|frontend"
