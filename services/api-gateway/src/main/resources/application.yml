@@ -2,6 +2,14 @@ spring:
   application:
     name: api-gateway
 
+  otel:
+    exporter:
+      otlp:
+        endpoint: http://tempo.monitoring.svc.cluster.local:4318
+    resource:
+      attributes:
+        service.name: api-gateway
+
   cloud:
     refresh:
       enabled: false
@@ -84,7 +92,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,env
   endpoint:
     health:
       show-details: always
@@ -106,9 +114,6 @@ management:
   tracing:
     sampling:
       probability: 1.0
-  otlp:
-    tracing:
-      endpoint: http://tempo.monitoring.svc.cluster.local:4318/v1/traces
 
 logging:
   level:
