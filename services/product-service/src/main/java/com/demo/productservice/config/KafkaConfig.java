@@ -1,6 +1,7 @@
 package com.demo.productservice.config;
 
 import com.demo.events.order.OrderCreatedEvent;
+import io.micrometer.observation.ObservationRegistry;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -49,7 +50,9 @@ public class KafkaConfig {
 
     @Bean
     public KafkaTemplate<String, Object> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+        KafkaTemplate<String, Object> template = new KafkaTemplate<>(producerFactory());
+        template.setObservationEnabled(true);
+        return template;
     }
 
     // ─── Consumer ─────────────────────────────────────────────────────────────
