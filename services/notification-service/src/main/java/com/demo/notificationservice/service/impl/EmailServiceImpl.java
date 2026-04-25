@@ -28,7 +28,7 @@ public class EmailServiceImpl implements EmailService {
     public EmailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine, MeterRegistry meterRegistry) {
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
-        this.emailsSentCounter = Counter.builder("emails.sent.total")
+        this.emailsSentCounter = Counter.builder("business.emails.sent")
                 .description("Total emails sent")
                 .register(meterRegistry);
     }

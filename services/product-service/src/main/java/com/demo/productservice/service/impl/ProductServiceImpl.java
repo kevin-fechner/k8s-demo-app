@@ -34,10 +34,10 @@ public class ProductServiceImpl implements ProductService {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
         this.inventoryEventPublisher = inventoryEventPublisher;
-        this.stockReservationsCounter = Counter.builder("stock.reservations.total")
+        this.stockReservationsCounter = Counter.builder("business.stock.reserved")
                 .description("Total stock reservations")
                 .register(meterRegistry);
-        this.stockInsufficientCounter = Counter.builder("stock.insufficient.total")
+        this.stockInsufficientCounter = Counter.builder("business.stock.insufficient")
                 .description("Total stock insufficient events")
                 .register(meterRegistry);
     }
