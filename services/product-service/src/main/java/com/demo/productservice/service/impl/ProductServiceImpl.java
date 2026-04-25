@@ -14,14 +14,12 @@ import com.demo.productservice.service.ProductService;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 @Transactional
 public class ProductServiceImpl implements ProductService {
@@ -29,7 +27,20 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final InventoryEventPublisher inventoryEventPublisher;
-    private final MeterRegistry meterRegistry;
+    private final Counter stockReservationsCounter;
+    private final Counter stockInsufficientCounter;
+
+    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper, InventoryEventPublisher inventoryEventPublisher, MeterRegistry meterRegistry) {
+        this.productRepository = productRepository;
+        this.productMapper = productMapper;
+        this.inventoryEventPublisher = inventoryEventPublisher;
+        this.stockReservationsCounter = Counter.builder("stock.reservations.total")
+                .description("Total stock reservations")
+                .register(meterRegistry);
+        this.stockInsufficientCounter = Counter.builder("stock.insufficient.total")
+                .description("Total stock insufficient events")
+                .register(meterRegistry);
+    }
 
     @Override
     public List<ProductResponse> getAllProducts() {
@@ -72,7 +83,7 @@ public class ProductServiceImpl implements ProductService {
                 if (product.getStock() >= item.quantity()) {
                     product.setStock(product.getStock() - item.quantity());
                     productRepository.save(product);
-                    stockReservationsCounter().increment();
+                    stockReservationsCounter.increment();
 
                     inventoryEventPublisher.publishStockUpdated(new StockUpdatedEvent(
                             event.orderId(),
@@ -89,7 +100,7 @@ public class ProductServiceImpl implements ProductService {
                             product.getStock(),
                             java.time.LocalDateTime.now()
                     ));
-                    stockInsufficientCounter().increment();
+                    stockInsufficientCounter.increment();
                 }
 
             }, () -> log.warn("Product not found: {}", item.productId()));
@@ -103,17 +114,5 @@ public class ProductServiceImpl implements ProductService {
             throw new ProductNotFoundException(id);
         }
         productRepository.deleteById(id);
-    }
-
-    private Counter stockReservationsCounter() {
-        return Counter.builder("stock.reservations.total")
-                .description("Total stock reservations")
-                .register(meterRegistry);
-    }
-
-    private Counter stockInsufficientCounter() {
-        return Counter.builder("stock.insufficient.total")
-                .description("Total stock insufficient events")
-                .register(meterRegistry);
     }
 }

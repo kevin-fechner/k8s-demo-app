@@ -4,8 +4,11 @@ import com.demo.events.order.OrderCreatedEvent;
 import com.demo.events.order.OrderStatusChangedEvent;
 import com.demo.orderservice.client.ProductClient;
 import com.demo.orderservice.dto.*;
-import com.demo.orderservice.entity.*;
-import com.demo.orderservice.exception.*;
+import com.demo.orderservice.entity.Order;
+import com.demo.orderservice.entity.OrderItem;
+import com.demo.orderservice.entity.OrderStatus;
+import com.demo.orderservice.exception.OrderNotFoundException;
+import com.demo.orderservice.exception.ProductNotAvailableException;
 import com.demo.orderservice.mapper.OrderMapper;
 import com.demo.orderservice.messaging.OrderEventPublisher;
 import com.demo.orderservice.repository.OrderRepository;
@@ -13,7 +16,6 @@ import com.demo.orderservice.service.OrderService;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +23,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 @Transactional
 public class OrderServiceImpl implements OrderService {
@@ -30,7 +31,31 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final ProductClient productClient;
     private final OrderEventPublisher eventPublisher;
-    private final MeterRegistry meterRegistry;
+    private final Counter ordersCreatedCounter;
+    private final Counter ordersConfirmedCounter;
+    private final Counter ordersCancelledCounter;
+
+    public OrderServiceImpl(OrderRepository orderRepository,
+                            OrderMapper orderMapper,
+                            ProductClient productClient,
+                            OrderEventPublisher eventPublisher,
+                            MeterRegistry meterRegistry) {
+        this.orderRepository = orderRepository;
+        this.orderMapper = orderMapper;
+        this.productClient = productClient;
+        this.eventPublisher = eventPublisher;
+
+        // Register counters eagerly so they show up in Prometheus from startup
+        this.ordersCreatedCounter = Counter.builder("orders.created.total")
+                .description("Total number of orders created")
+                .register(meterRegistry);
+        this.ordersConfirmedCounter = Counter.builder("orders.confirmed.total")
+                .description("Total number of orders confirmed")
+                .register(meterRegistry);
+        this.ordersCancelledCounter = Counter.builder("orders.cancelled.total")
+                .description("Total number of orders cancelled")
+                .register(meterRegistry);
+    }
 
     @Override
     public List<OrderResponse> getAllOrders() {
@@ -72,7 +97,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order saved = orderRepository.save(order);
-        ordersCreatedCounter().increment();
+        ordersCreatedCounter.increment();
 
         OrderCreatedEvent event = new OrderCreatedEvent(
                 saved.getId(),
@@ -124,7 +149,7 @@ public class OrderServiceImpl implements OrderService {
         String previous = order.getStatus().name();
         order.setStatus(OrderStatus.CONFIRMED);
         Order saved = orderRepository.save(order);
-        ordersConfirmedCounter().increment();
+        ordersConfirmedCounter.increment();
         eventPublisher.publishOrderStatusChanged(new OrderStatusChangedEvent(
                 saved.getId(), saved.getCustomerEmail(), saved.getCustomerName(),
                 previous, saved.getStatus().name(), LocalDateTime.now()
@@ -138,7 +163,7 @@ public class OrderServiceImpl implements OrderService {
         String previous = order.getStatus().name();
         order.setStatus(OrderStatus.CANCELLED);
         Order saved = orderRepository.save(order);
-        ordersCancelledCounter().increment();
+        ordersCancelledCounter.increment();
         eventPublisher.publishOrderStatusChanged(new OrderStatusChangedEvent(
                 saved.getId(), saved.getCustomerEmail(), saved.getCustomerName(),
                 previous, saved.getStatus().name(), LocalDateTime.now()
@@ -154,22 +179,4 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.deleteById(id);
     }
 
-    // Business metric counters
-    private Counter ordersCreatedCounter() {
-        return Counter.builder("orders.created.total")
-                .description("Total number of orders created")
-                .register(meterRegistry);
-    }
-
-    private Counter ordersConfirmedCounter() {
-        return Counter.builder("orders.confirmed.total")
-                .description("Total number of orders confirmed")
-                .register(meterRegistry);
-    }
-
-    private Counter ordersCancelledCounter() {
-        return Counter.builder("orders.cancelled.total")
-                .description("Total number of orders cancelled")
-                .register(meterRegistry);
-    }
 }

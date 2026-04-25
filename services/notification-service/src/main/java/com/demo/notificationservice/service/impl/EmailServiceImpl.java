@@ -6,7 +6,6 @@ import com.demo.notificationservice.service.EmailService;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.mail.MessagingException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -17,15 +16,22 @@ import org.thymeleaf.context.Context;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
-    private final MeterRegistry meterRegistry;
+    private final Counter emailsSentCounter;
 
     @Value("${notification.mail.from}")
     private String fromAddress;
+
+    public EmailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine, MeterRegistry meterRegistry) {
+        this.mailSender = mailSender;
+        this.templateEngine = templateEngine;
+        this.emailsSentCounter = Counter.builder("emails.sent.total")
+                .description("Total emails sent")
+                .register(meterRegistry);
+    }
 
     @Override
     public void sendOrderConfirmation(OrderCreatedEvent event) {
@@ -69,16 +75,10 @@ public class EmailServiceImpl implements EmailService {
             helper.setSubject(subject);
             helper.setText(html, true);
             mailSender.send(message);
-            emailsSentCounter().increment();
+            emailsSentCounter.increment();
             log.info("Email sent to={} subject='{}'", to, subject);
         } catch (MessagingException e) {
             log.error("Failed to send email to={}: {}", to, e.getMessage());
         }
-    }
-
-    private Counter emailsSentCounter() {
-        return Counter.builder("emails.sent.total")
-                .description("Total emails sent")
-                .register(meterRegistry);
     }
 }

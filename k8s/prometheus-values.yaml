@@ -1,0 +1,41 @@
+server:
+  persistentVolume:
+    enabled: false
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - prometheus.local
+    paths:
+      - /
+    pathType: Prefix
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: NotIn
+                values:
+                  - my-cluster-worker3
+
+alertmanager:
+  enabled: false
+pushgateway:
+  enabled: false
+nodeExporter:
+  enabled: true
+kube-state-metrics:
+  enabled: true
+
+serverFiles:
+  prometheus.yml:
+    scrape_configs:
+      - job_name: 'spring-boot-services'
+        metrics_path: '/actuator/prometheus'
+        static_configs:
+          - targets:
+              - 'api-gateway.demo-app.svc.cluster.local:80'
+              - 'order-service.demo-app.svc.cluster.local:80'
+              - 'product-service.demo-app.svc.cluster.local:80'
+              - 'notification-service.demo-app.svc.cluster.local:80'
