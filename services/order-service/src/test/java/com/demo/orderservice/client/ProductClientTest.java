@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -30,7 +31,7 @@ class ProductClientTest {
 
     @BeforeEach
     void setUp() {
-        productClient = new ProductClient("http://localhost");
+        productClient = new ProductClient(restClient);
         ReflectionTestUtils.setField(productClient, "restClient", restClient);
     }
 
@@ -66,16 +67,16 @@ class ProductClientTest {
     }
 
     @Test
-    @DisplayName("Should return empty Optional and log warning when RestClientException is thrown")
-    void getProductById_RestClientException_ReturnsEmpty() {
+    @DisplayName("Should rethrow RestClientException (fallback requires circuit breaker AOP)")
+    void getProductById_RestClientException_Rethrows() {
         when(restClient.get()
                 .uri(anyString(), any(Long.class))
                 .retrieve()
                 .body(ProductDto.class))
                 .thenThrow(new RestClientException("Connection refused"));
 
-        Optional<ProductDto> result = productClient.getProductById(1L);
-
-        assertThat(result).isEmpty();
+        assertThatThrownBy(() -> productClient.getProductById(1L))
+                .isInstanceOf(RestClientException.class)
+                .hasMessage("Connection refused");
     }
 }
