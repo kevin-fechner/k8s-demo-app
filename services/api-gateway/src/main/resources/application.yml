@@ -114,7 +114,7 @@ management:
   otlp:
     metrics:
       export:
-        url: http://tempo.monitoring.svc.cluster.local:4318/v1/metrics
+        enabled: false
 
   opentelemetry:
     tracing:
