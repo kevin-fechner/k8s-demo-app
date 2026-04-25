@@ -8,6 +8,8 @@ A full-stack microservices application demonstrating a production-like Kubernete
 ![Angular](https://img.shields.io/badge/Angular-21-red)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-1.29-blue)
 ![Kafka](https://img.shields.io/badge/Apache%20Kafka-4.1.0-black)
+![Prometheus](https://img.shields.io/badge/Prometheus-monitoring-orange)
+![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-tracing-blueviolet)
 
 ---
 
@@ -30,6 +32,10 @@ http://demo-app.local
                   │                └► Notification Service (sends emails) ──► PostgreSQL
                   └── inventory-events ──► Order Service (stock confirmation)
 
+Observability (monitoring namespace)
+        ├── Prometheus ──► scrapes /actuator/prometheus from all backend pods
+        └── Grafana Tempo ──► receives OTLP traces from all backend services
+
 Deployed via ArgoCD (GitOps) · Built via GitHub Actions + SonarCloud
 ```
 
@@ -47,6 +53,8 @@ Deployed via ArgoCD (GitOps) · Built via GitHub Actions + SonarCloud
 | `notifications-db` | PostgreSQL 16 (CloudNativePG) | 5432 | Processed event deduplication store |
 | `kafka-cluster` | Apache Kafka 4.1.0 (Strimzi, KRaft) | 9092 | Event streaming |
 | `mailhog` | MailHog 1.0.1 | 1025/8025 | SMTP mock server for development |
+| `prometheus` | Prometheus (monitoring ns) | 9090 | Metrics collection and storage |
+| `tempo` | Grafana Tempo (monitoring ns) | 4318 | Distributed trace ingestion (OTLP/HTTP) |
 
 ---
 
@@ -83,6 +91,11 @@ Deployed via ArgoCD (GitOps) · Built via GitHub Actions + SonarCloud
 - **Strimzi** operator for Apache Kafka
 - **NGINX Ingress Controller**
 - **MailHog** for development email testing
+
+### Observability
+- **Micrometer + Prometheus** — metrics exposed via `/actuator/prometheus` on all backend services; p50/p95/p99 histograms for HTTP requests; application-tagged metrics for Prometheus aggregation across replicas
+- **Grafana Tempo** — distributed trace backend; all services export spans via OTLP/HTTP; Kafka producer/consumer spans included via Spring Kafka observation support
+- **OpenTelemetry** (`spring-boot-starter-opentelemetry`) — 100 % sampling; trace context propagated end-to-end through HTTP and Kafka
 
 ### CI/CD & Quality
 - **GitHub Actions** for CI/CD pipelines
@@ -141,6 +154,47 @@ Each consuming service stores processed event IDs in PostgreSQL (`ProcessedEvent
 
 ---
 
+## Observability Stack
+
+All four backend services are fully instrumented with metrics and distributed tracing, both deployed into the `monitoring` namespace.
+
+### Metrics (Prometheus + Micrometer)
+
+Every service exposes `GET /actuator/prometheus`. Prometheus scrapes all backend pods in the `demo-app` namespace via Kubernetes service discovery — configured in `k8s/prometheus-values.yaml` — without requiring individual `ServiceMonitor` resources.
+
+**Standard metrics exposed per service:**
+- HTTP request latency histograms (`http.server.requests`) with p50, p95, p99 percentiles
+- JVM memory, GC, thread, and CPU metrics
+- Spring Kafka consumer lag and listener metrics
+- PostgreSQL connection pool metrics (HikariCP)
+- Kubernetes node-level metrics via Node Exporter
+- Cluster-level metrics via `kube-state-metrics`
+
+**Business counters:**
+
+| Metric | Service | Description |
+|---|---|---|
+| `business.orders.created` | order-service | Orders placed |
+| `business.orders.confirmed` | order-service | Orders confirmed via Kafka |
+| `business.orders.cancelled` | order-service | Orders cancelled via Kafka |
+| `business.stock.reserved` | product-service | Successful stock reservations |
+| `business.stock.insufficient` | product-service | Stock reservation failures |
+| `business.emails.sent` | notification-service | Emails dispatched |
+
+All metrics carry an `application` tag (e.g. `application="order-service"`) for cross-service Prometheus queries.
+
+### Distributed Tracing (OpenTelemetry + Grafana Tempo)
+
+All services use `spring-boot-starter-opentelemetry` and export spans via OTLP/HTTP to Grafana Tempo at `http://tempo.monitoring.svc.cluster.local:4318/v1/traces`. Sampling is set to 100 % (`management.tracing.sampling.probability=1.0`).
+
+Trace context propagates across:
+- **HTTP** — incoming requests and outgoing calls through the API Gateway
+- **Kafka** — producer and consumer spans are captured because `spring.kafka.template.observation-enabled` and `spring.kafka.listener.observation-enabled` are both `true` on every service
+
+A full order lifecycle (HTTP → order-service → Kafka → product-service / notification-service) is therefore represented as a single distributed trace in Tempo.
+
+---
+
 ## Project Structure
 
 ```
@@ -166,7 +220,9 @@ k8s-demo-app/
 │   ├── kafka-topics.yaml
 │   ├── ingress.yaml
 │   ├── mailhog.yaml
-│   └── argocd-apps.yaml
+│   ├── argocd-apps.yaml
+│   ├── prometheus-values.yaml    # Helm values for Prometheus (pod scraping, ingress)
+│   └── prometheus-rbac.yaml     # ClusterRole for Prometheus pod discovery
 └── .github/
     └── workflows/
         ├── product-service.yml
@@ -346,7 +402,33 @@ helm install strimzi-operator strimzi/strimzi-kafka-operator \
   --create-namespace
 ```
 
-### 7. Apply Kubernetes Manifests
+### 7. Install the Observability Stack
+
+```bash
+# Add Helm repositories
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+
+# Deploy Prometheus into the monitoring namespace
+helm upgrade --install prometheus prometheus-community/prometheus \
+  --namespace monitoring \
+  --create-namespace \
+  --values k8s/prometheus-values.yaml
+
+# Apply RBAC so Prometheus can discover pods in demo-app namespace
+kubectl apply -f k8s/prometheus-rbac.yaml
+
+# Deploy Grafana Tempo (single-binary, no persistence required for local dev)
+helm upgrade --install tempo grafana/tempo \
+  --namespace monitoring \
+  --set tempo.storage.trace.backend=local
+
+# Add local DNS entry for Prometheus
+echo "127.0.0.1 prometheus.local" | sudo tee -a /etc/hosts
+```
+
+### 9. Apply Kubernetes Manifests
 
 ```bash
 # Create namespaces
@@ -367,7 +449,7 @@ kubectl get pods -n databases -w
 kubectl get kafka -n kafka -w
 ```
 
-### 8. Configure ArgoCD
+### 10. Configure ArgoCD
 
 ```bash
 # Port-forward ArgoCD
@@ -393,14 +475,14 @@ argocd repo add https://github.com/kevin-fechner/k8s-demo-app.git \
 kubectl apply -f k8s/argocd-apps.yaml
 ```
 
-### 9. Add Local DNS Entries
+### 11. Add Local DNS Entries
 
 ```bash
 echo "127.0.0.1 demo-app.local" | sudo tee -a /etc/hosts
 echo "127.0.0.1 mailhog.local" | sudo tee -a /etc/hosts
 ```
 
-### 10. Access the Application
+### 12. Access the Application
 
 | URL | Description |
 |---|---|
@@ -410,6 +492,7 @@ echo "127.0.0.1 mailhog.local" | sudo tee -a /etc/hosts
 | http://demo-app.local/api/orders | Orders API |
 | https://argocd.local | ArgoCD dashboard |
 | http://mailhog.local:8025 | MailHog web UI (inspect sent emails) |
+| http://prometheus.local | Prometheus metrics UI |
 
 ---
 
@@ -548,6 +631,7 @@ helm lint helm/product-service
 | `demo-app` | All application services |
 | `databases` | PostgreSQL clusters (products, orders, notifications) |
 | `kafka` | Kafka cluster (Strimzi) |
+| `monitoring` | Prometheus, Grafana Tempo |
 | `argocd` | ArgoCD GitOps controller |
 | `ingress-nginx` | NGINX Ingress Controller |
 | `cnpg-system` | CloudNativePG operator |
@@ -625,6 +709,36 @@ argocd app sync <app-name> --grpc-web
 
 # Check repository connection
 argocd repo list --grpc-web
+```
+
+### Prometheus not scraping services
+```bash
+# Check Prometheus targets (UI → Status → Targets)
+# or via API:
+curl http://prometheus.local/api/v1/targets | jq '.data.activeTargets[] | {job: .labels.job, health: .health}'
+
+# Verify RBAC is applied
+kubectl get clusterrolebinding prometheus-pod-reader
+
+# Confirm pods have the expected labels
+kubectl get pods -n demo-app --show-labels | grep app.kubernetes.io/name
+
+# Check Prometheus pod logs
+kubectl logs -n monitoring -l app.kubernetes.io/name=prometheus -c prometheus-server
+```
+
+### Traces not appearing in Tempo
+```bash
+# Verify Tempo pod is running
+kubectl get pods -n monitoring -l app.kubernetes.io/name=tempo
+
+# Check that a service can reach Tempo
+kubectl exec -n demo-app deploy/order-service -- \
+  curl -s -o /dev/null -w "%{http_code}" \
+  http://tempo.monitoring.svc.cluster.local:4318/v1/traces
+
+# Check service logs for OTLP export errors
+kubectl logs -n demo-app -l app=order-service | grep -i "otlp\|trace\|export"
 ```
 
 ---
