@@ -46,8 +46,8 @@ public class OrderServiceImpl implements OrderService {
         this.eventPublisher = eventPublisher;
 
         // Register counters eagerly so they show up in Prometheus from startup
-        this.ordersCreatedCounter = Counter.builder("business.orders.created")
-                .description("Total number of orders created")
+        this.ordersCreatedCounter = Counter.builder("business.orders.placed")
+                .description("Total number of orders placed")
                 .register(meterRegistry);
         this.ordersConfirmedCounter = Counter.builder("business.orders.confirmed")
                 .description("Total number of orders confirmed")
