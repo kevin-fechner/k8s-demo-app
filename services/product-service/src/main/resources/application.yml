@@ -53,6 +53,7 @@ management:
     web:
       exposure:
         include: health,info,metrics,prometheus,env
+
   endpoint:
     health:
       show-details: always
@@ -60,9 +61,11 @@ management:
         enabled: true
     prometheus:
       enabled: true
+
   health:
     kafka:
       enabled: true
+
   metrics:
     tags:
       application: ${spring.application.name}
@@ -71,9 +74,16 @@ management:
         http.server.requests: true
       percentiles:
         http.server.requests: 0.5, 0.95, 0.99
+
   tracing:
     sampling:
       probability: 1.0
+
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: http://tempo.monitoring.svc.cluster.local:4318/v1/traces
 
 logging:
   level:
