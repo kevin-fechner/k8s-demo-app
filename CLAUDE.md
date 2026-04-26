@@ -87,7 +87,7 @@ The frontend follows these non-default Angular patterns (enforced in `frontend/.
 - All exceptions are handled centrally via @RestControllerAdvice
 - Use list.getLast() instead of list.get(list.size() - 1)
 - Use list.getFirst() instead of list.get(0)
-
+- Don't user container annotations as a wrapper to use multiple instances of the same annotation. As of Java 8, this is no longer necessary. Instead, these annotations should be used directly without a wrapper, resulting in cleaner and more readable code.
 
 ### CI/CD
 
