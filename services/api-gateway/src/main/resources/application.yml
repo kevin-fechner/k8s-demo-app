@@ -57,14 +57,14 @@ spring:
 
             # ─── OpenAPI / Swagger routes ──────────────────────────
             - id: order-service-swagger
-              uri: http://order-service.demo-app.svc.cluster.local:8082
+              uri: ${ORDER_SERVICE_URL:http://localhost:8082}
               predicates:
                 - Path=/api/order-service/swagger-ui.html,/api/order-service/swagger-ui/**,/api/order-service/api-docs/**,/api/order-service/webjars/**
               filters:
                 - StripPrefix=2
 
             - id: product-service-swagger
-              uri: http://product-service.demo-app.svc.cluster.local:8081
+              uri: ${PRODUCT_SERVICE_URL:http://localhost:8081}
               predicates:
                 - Path=/api/product-service/swagger-ui.html,/api/product-service/swagger-ui/**,/api/product-service/api-docs/**,/api/product-service/webjars/**
               filters:
