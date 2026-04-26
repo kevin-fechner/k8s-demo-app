@@ -135,4 +135,6 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+    config-url: /api/order-service/api-docs/swagger-config
+    url: /api/order-service/api-docs
   show-actuator: false

@@ -94,4 +94,6 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+    config-url: /api/product-service/api-docs/swagger-config
+    url: /api/product-service/api-docs
   show-actuator: false
