@@ -209,6 +209,13 @@ spec:
               kubernetes.io/metadata.name: monitoring
       ports:
         - port: 4318
+    # Redis cache
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+      ports:
+        - port: 6379
 
 ---
 # ─── Notification Service ─────────────────────────────────────────

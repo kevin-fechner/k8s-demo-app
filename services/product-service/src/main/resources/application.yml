@@ -34,6 +34,19 @@ spring:
     listener:
       observation-enabled: true
 
+  data:
+    redis:
+      host: ${REDIS_HOST:redis.demo-app.svc.cluster.local}
+      port: ${REDIS_PORT:6379}
+      timeout: 2s
+      connect-timeout: 2s
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300s
+      cache-null-values: false
+
 kafka:
   topics:
     order-events: order-events

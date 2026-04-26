@@ -273,14 +273,14 @@ Both services support cursor-based pagination:
 | `size` | Page size (default 10, max 100) | `20` |
 
 Response format:
-\```json
+```json
 {
   "data": [...],
   "nextCursor": "eyJpZCI6MTV9",
   "hasMore": true,
   "size": 10
 }
-\```
+```
 
 Use `nextCursor` from the response as the `cursor` parameter in the next request. When `hasMore` is `false` you have reached the last page.
 

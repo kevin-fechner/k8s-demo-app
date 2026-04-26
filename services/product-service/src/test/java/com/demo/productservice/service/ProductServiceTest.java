@@ -1,9 +1,12 @@
 package com.demo.productservice.service;
 
-import com.demo.events.order.OrderCreatedEvent;
 import com.demo.events.inventory.StockInsufficientEvent;
 import com.demo.events.inventory.StockUpdatedEvent;
-import com.demo.productservice.dto.*;
+import com.demo.events.order.OrderCreatedEvent;
+import com.demo.productservice.dto.CursorPage;
+import com.demo.productservice.dto.ProductFilter;
+import com.demo.productservice.dto.ProductRequest;
+import com.demo.productservice.dto.ProductResponse;
 import com.demo.productservice.entity.Product;
 import com.demo.productservice.exception.ProductNotFoundException;
 import com.demo.productservice.mapper.ProductMapper;
@@ -13,15 +16,22 @@ import com.demo.productservice.service.impl.ProductServiceImpl;
 import com.demo.productservice.util.CursorUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Pageable;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -31,6 +41,7 @@ class ProductServiceTest {
 	@Mock private ProductRepository productRepository;
 	@Mock private ProductMapper productMapper;
 	@Mock private InventoryEventPublisher inventoryEventPublisher;
+	@Mock private CacheManager cacheManager;
 	@Spy private MeterRegistry meterRegistry = new SimpleMeterRegistry();
 	@InjectMocks
 	private ProductServiceImpl productService;
@@ -142,6 +153,7 @@ class ProductServiceTest {
 		);
 		when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
 		when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+		when(cacheManager.getCache("products")).thenReturn(mock(org.springframework.cache.Cache.class));
 
 		productService.reserveStock(event);
 

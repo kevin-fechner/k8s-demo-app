@@ -17,6 +17,9 @@ import com.demo.productservice.util.CursorUtil;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,13 +34,15 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final InventoryEventPublisher inventoryEventPublisher;
+    private final CacheManager cacheManager;
     private final Counter stockReservationsCounter;
     private final Counter stockInsufficientCounter;
 
-    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper, InventoryEventPublisher inventoryEventPublisher, MeterRegistry meterRegistry) {
+    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper, InventoryEventPublisher inventoryEventPublisher, CacheManager cacheManager, MeterRegistry meterRegistry) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
         this.inventoryEventPublisher = inventoryEventPublisher;
+        this.cacheManager = cacheManager;
         this.stockReservationsCounter = Counter.builder("business.stock.reserved")
                 .description("Total stock reservations")
                 .register(meterRegistry);
@@ -80,6 +85,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Cacheable(value = "products", key = "#id")
     @Transactional(readOnly = true)
     public ProductResponse getProductById(Long id) {
         log.info("Fetching product with id: {}", id);
@@ -97,6 +103,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @CacheEvict(value = "products", key = "#id")
     @Transactional
     public ProductResponse updateProduct(Long id, ProductRequest request) {
         log.info("Updating product with id: {}", id);
@@ -115,6 +122,8 @@ public class ProductServiceImpl implements ProductService {
                 if (product.getStock() >= item.quantity()) {
                     product.setStock(product.getStock() - item.quantity());
                     productRepository.save(product);
+                    var cache = cacheManager.getCache("products");
+                    if (cache != null) cache.evict(product.getId());
                     stockReservationsCounter.increment();
 
                     inventoryEventPublisher.publishStockUpdated(new StockUpdatedEvent(
@@ -140,6 +149,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @CacheEvict(value = "products", key = "#id")
     @Transactional
     public void deleteProduct(Long id) {
         log.info("Deleting product with id: {}", id);
@@ -148,4 +158,5 @@ public class ProductServiceImpl implements ProductService {
         }
         productRepository.deleteById(id);
     }
+
 }

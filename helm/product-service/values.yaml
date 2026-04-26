@@ -30,6 +30,8 @@ env:
   DB_NAME: "productsdb"
   SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092
   SPRING_PROFILES_ACTIVE: kubernetes
+  REDIS_HOST: redis.demo-app.svc.cluster.local
+  REDIS_PORT: "6379"
 
 secret:
   DB_USER: "appuser"
