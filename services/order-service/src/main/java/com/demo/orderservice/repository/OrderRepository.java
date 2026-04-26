@@ -22,8 +22,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             AND (CAST(:status AS string) IS NULL OR o.status = :status)
             AND (:customerEmail IS NULL OR LOWER(o.customerEmail)
                  LIKE LOWER(CONCAT('%', CAST(:customerEmail AS string), '%')))
-            AND (:fromDate IS NULL OR o.createdAt >= :fromDate)
-            AND (:toDate IS NULL OR o.createdAt <= :toDate)
+            AND (CAST(:fromDate AS timestamp) IS NULL OR o.createdAt >= :fromDate)
+            AND (CAST(:toDate AS timestamp) IS NULL OR o.createdAt <= :toDate)
             ORDER BY o.id ASC
             """)
     List<Order> findWithCursor(
