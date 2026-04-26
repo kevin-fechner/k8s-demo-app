@@ -732,6 +732,50 @@ kubectl exec -n demo-app deploy/order-service -- \
 kubectl logs -n demo-app -l app=order-service | grep -i "otlp\|trace\|export"
 ```
 
+### Network Policies not enforced in kind
+
+The network policies in `k8s/network-policies.yaml` are correctly defined 
+but are **not enforced** in this local kind cluster because kind uses 
+`kindnet` as its CNI plugin, which does not support NetworkPolicy enforcement.
+
+In a production cluster using Calico, Cilium, or any other NetworkPolicy-capable 
+CNI the policies would enforce:
+
+- Only `api-gateway` can receive external traffic
+- Services can only reach their own database
+- Services can only communicate with Kafka
+- No direct pod-to-pod communication outside defined rules
+
+To test NetworkPolicy enforcement locally, recreate the kind cluster with 
+Calico as the CNI:
+
+```bash
+# Create cluster without default CNI
+cat < kind-cluster-calico.yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+networking:
+  disableDefaultCNI: true
+  podSubnet: "192.168.0.0/16"
+nodes:
+- role: control-plane
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80
+  - containerPort: 443
+    hostPort: 443
+- role: worker
+- role: worker
+- role: worker
+EOF
+
+kind create cluster --name my-cluster --config kind-cluster-calico.yaml
+
+# Install Calico
+kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml
+\```
+```
+
 ---
 
 ## License
