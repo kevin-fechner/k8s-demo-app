@@ -16,17 +16,16 @@ import com.demo.productservice.service.ProductService;
 import com.demo.productservice.util.CursorUtil;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @Slf4j
-@Transactional
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
@@ -48,15 +47,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductResponse> getAllProducts() {
-        log.info("Fetching all products");
-        return productRepository.findAll()
-                .stream()
-                .map(productMapper::toResponse)
-                .toList();
-    }
-
-    @Override
+    @Transactional(readOnly = true)
     public CursorPage<ProductResponse> getProducts(
             String cursor, int size, ProductFilter filter) {
 
@@ -89,6 +80,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProductResponse getProductById(Long id) {
         log.info("Fetching product with id: {}", id);
         return productRepository.findById(id)
@@ -97,6 +89,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ProductResponse createProduct(ProductRequest request) {
         log.info("Creating product: {}", request.name());
         Product product = productMapper.toProduct(request);
@@ -104,6 +97,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ProductResponse updateProduct(Long id, ProductRequest request) {
         log.info("Updating product with id: {}", id);
         Product product = productRepository.findById(id)
@@ -113,6 +107,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public void reserveStock(OrderCreatedEvent event) {
         for (OrderCreatedEvent.OrderItem item : event.items()) {
             productRepository.findById(item.productId()).ifPresentOrElse(product -> {
@@ -145,6 +140,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public void deleteProduct(Long id) {
         log.info("Deleting product with id: {}", id);
         if (!productRepository.existsById(id)) {

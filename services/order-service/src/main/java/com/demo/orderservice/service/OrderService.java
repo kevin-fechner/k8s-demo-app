@@ -5,8 +5,6 @@ import com.demo.orderservice.dto.*;
 import java.util.List;
 
 public interface OrderService {
-    List<OrderResponse> getAllOrders();
-
     OrderResponse getOrderById(Long id);
 
     CursorPage<OrderResponse> getOrders(String cursor, int size, OrderFilter filter);

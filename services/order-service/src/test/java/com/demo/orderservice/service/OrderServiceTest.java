@@ -67,18 +67,6 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("Should return all orders")
-    void getAllOrders_ReturnsAllOrders() {
-        when(orderRepository.findAll()).thenReturn(List.of(testOrder));
-        when(orderMapper.toResponse(testOrder)).thenReturn(testResponse);
-
-        List<OrderResponse> result = orderService.getAllOrders();
-
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().customerName()).isEqualTo("John Doe");
-    }
-
-    @Test
     @DisplayName("Should return order by id")
     void getOrderById_ExistingId_ReturnsOrder() {
         when(orderRepository.findByIdWithItems(1L))

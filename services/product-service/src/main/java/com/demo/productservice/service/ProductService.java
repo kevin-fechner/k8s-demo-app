@@ -10,8 +10,6 @@ import java.util.List;
 
 public interface ProductService {
 
-    List<ProductResponse> getAllProducts();
-
     CursorPage<ProductResponse> getProducts(String cursor, int size, ProductFilter filter);
 
     ProductResponse getProductById(Long id);

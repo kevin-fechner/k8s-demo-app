@@ -16,18 +16,17 @@ import com.demo.orderservice.service.OrderService;
 import com.demo.orderservice.util.CursorUtil;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @Slf4j
-@Transactional
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
@@ -61,15 +60,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderResponse> getAllOrders() {
-        log.info("Fetching all orders");
-        return orderRepository.findAll()
-                .stream()
-                .map(orderMapper::toResponse)
-                .toList();
-    }
-
-    @Override
+    @Transactional(readOnly = true)
     public OrderResponse getOrderById(Long id) {
         log.info("Fetching order with id: {}", id);
         return orderRepository.findByIdWithItems(id)
@@ -78,6 +69,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CursorPage<OrderResponse> getOrders(
             String cursor, int size, OrderFilter filter) {
 
@@ -109,6 +101,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public OrderResponse createOrder(OrderRequest request) {
         log.info("Creating order for customer: {}", request.customerName());
 
@@ -155,6 +148,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public OrderResponse updateStatus(Long id, UpdateStatusRequest request) {
         log.info("Updating status of order {} to {}", id, request.status());
         Order order = orderRepository.findById(id)
@@ -177,6 +171,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void confirmOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
@@ -191,6 +186,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void cancelOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
@@ -205,6 +201,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void deleteOrder(Long id) {
         log.info("Deleting order with id: {}", id);
         if (!orderRepository.existsById(id)) {

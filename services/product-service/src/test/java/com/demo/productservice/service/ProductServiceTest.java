@@ -54,19 +54,6 @@ class ProductServiceTest {
 	}
 
 	@Test
-	@DisplayName("Should return all products")
-	void getAllProducts_ReturnsAllProducts() {
-		when(productRepository.findAll()).thenReturn(List.of(testProduct));
-		when(productMapper.toResponse(testProduct)).thenReturn(testResponse);
-
-		List<ProductResponse> result = productService.getAllProducts();
-
-		assertThat(result).hasSize(1);
-		assertThat(result.getFirst().name()).isEqualTo("Test Product");
-		verify(productRepository, times(1)).findAll();
-	}
-
-	@Test
 	@DisplayName("Should return product by id")
 	void getProductById_ExistingId_ReturnsProduct() {
 		when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
