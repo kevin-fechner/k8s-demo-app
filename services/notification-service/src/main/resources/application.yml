@@ -90,3 +90,11 @@ management:
       export:
         otlp:
           endpoint: http://tempo.monitoring.svc.cluster.local:4318/v1/traces
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  show-actuator: false

@@ -773,7 +773,6 @@ kind create cluster --name my-cluster --config kind-cluster-calico.yaml
 
 # Install Calico
 kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml
-\```
 ```
 
 ---

@@ -55,6 +55,21 @@ spring:
               filters:
                 - StripPrefix=2
 
+            # ─── OpenAPI / Swagger routes ──────────────────────────
+            - id: order-service-swagger
+              uri: http://order-service.demo-app.svc.cluster.local:8082
+              predicates:
+                - Path=/api/order-service/swagger-ui/**,/api/order-service/api-docs/**
+              filters:
+                - StripPrefix=2
+
+            - id: product-service-swagger
+              uri: http://product-service.demo-app.svc.cluster.local:8081
+              predicates:
+                - Path=/api/product-service/swagger-ui/**,/api/product-service/api-docs/**
+              filters:
+                - StripPrefix=2
+
           globalcors:
             cors-configurations:
               '[/**]':

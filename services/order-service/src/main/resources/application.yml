@@ -128,3 +128,11 @@ logging:
 clients:
   product-service:
     url: ${PRODUCT_SERVICE_URL:http://localhost:8081}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  show-actuator: false
