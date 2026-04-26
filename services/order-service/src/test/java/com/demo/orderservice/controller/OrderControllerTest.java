@@ -4,8 +4,8 @@ import com.demo.orderservice.dto.*;
 import com.demo.orderservice.entity.OrderStatus;
 import com.demo.orderservice.exception.OrderNotFoundException;
 import com.demo.orderservice.exception.ProductNotAvailableException;
-import com.demo.orderservice.service.impl.OrderServiceImpl;
-import com.demo.orderservice.mapper.OrderMapperImpl;
+import com.demo.orderservice.service.OrderService;
+import com.demo.orderservice.util.CursorUtil;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
@@ -16,8 +16,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
+
 import java.math.BigDecimal;
 import java.util.List;
+
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -34,8 +37,7 @@ class OrderControllerTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
-    @MockitoBean private OrderServiceImpl orderService;
-    @MockitoBean private OrderMapperImpl orderMapper;
+    @MockitoBean private OrderService orderService;
 
     private OrderResponse testResponse;
     private OrderRequest testRequest;
@@ -54,13 +56,65 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/orders - should return list of orders")
-    void getAllOrders_Returns200() throws Exception {
-        when(orderService.getAllOrders()).thenReturn(List.of(testResponse));
+    @DisplayName("GET /api/orders - should return paginated response")
+    void getOrders_NoParams_Returns200() throws Exception {
+        CursorPage<OrderResponse> page = new CursorPage<>(List.of(testResponse), null, false, 1);
+        when(orderService.getOrders(isNull(), eq(10), any(OrderFilter.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/orders"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].customerName").value("John Doe"));
+                .andExpect(jsonPath("$.data[0].customerName").value("John Doe"))
+                .andExpect(jsonPath("$.hasMore").value(false));
+    }
+
+    @Test
+    @DisplayName("GET /api/orders?cursor=... - should pass cursor to service")
+    void getOrders_WithCursor_Returns200() throws Exception {
+        String cursor = CursorUtil.encode(5L);
+        CursorPage<OrderResponse> page = new CursorPage<>(List.of(testResponse), null, false, 1);
+        when(orderService.getOrders(eq(cursor), eq(10), any(OrderFilter.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/orders").param("cursor", cursor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].customerName").value("John Doe"));
+    }
+
+    @Test
+    @DisplayName("GET /api/orders?size=200 - should cap page size at 100")
+    void getOrders_SizeExceeds100_CappedAt100() throws Exception {
+        CursorPage<OrderResponse> page = new CursorPage<>(List.of(), null, false, 0);
+        when(orderService.getOrders(isNull(), eq(100), any(OrderFilter.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/orders").param("size", "200"))
+                .andExpect(status().isOk());
+
+        verify(orderService).getOrders(isNull(), eq(100), any(OrderFilter.class));
+    }
+
+    @Test
+    @DisplayName("GET /api/orders?status=PENDING - should pass status filter to service")
+    void getOrders_WithStatusFilter_PassesFilterToService() throws Exception {
+        CursorPage<OrderResponse> page = new CursorPage<>(List.of(testResponse), null, false, 1);
+        when(orderService.getOrders(any(), anyInt(), any(OrderFilter.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/orders").param("status", "PENDING"))
+                .andExpect(status().isOk());
+
+        verify(orderService).getOrders(
+                isNull(), eq(10), eq(new OrderFilter(OrderStatus.PENDING, null, null, null)));
+    }
+
+    @Test
+    @DisplayName("GET /api/orders - should return nextCursor in response when hasMore=true")
+    void getOrders_HasMore_ReturnsNextCursor() throws Exception {
+        String nextCursor = CursorUtil.encode(10L);
+        CursorPage<OrderResponse> page = new CursorPage<>(List.of(testResponse), nextCursor, true, 10);
+        when(orderService.getOrders(any(), anyInt(), any())).thenReturn(page);
+
+        mockMvc.perform(get("/api/orders"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.hasMore").value(true))
+                .andExpect(jsonPath("$.nextCursor").value(nextCursor));
     }
 
     @Test

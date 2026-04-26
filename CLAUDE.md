@@ -85,6 +85,9 @@ The frontend follows these non-default Angular patterns (enforced in `frontend/.
 - Throw custom exceptions (EntityNotFoundException, etc.)
 - Never return null from service methods — use Optional or throw
 - All exceptions are handled centrally via @RestControllerAdvice
+- Use list.getLast() instead of list.get(list.size() - 1)
+- Use list.getFirst() instead of list.get(0)
+
 
 ### CI/CD
 

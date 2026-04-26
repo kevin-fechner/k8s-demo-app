@@ -1,10 +1,13 @@
 package com.demo.productservice.controller;
 
+import com.demo.productservice.dto.CursorPage;
+import com.demo.productservice.dto.ProductFilter;
 import com.demo.productservice.dto.ProductRequest;
 import com.demo.productservice.dto.ProductResponse;
 import com.demo.productservice.exception.ProductNotFoundException;
 import com.demo.productservice.mapper.ProductMapperImpl;
 import com.demo.productservice.service.impl.ProductServiceImpl;
+import com.demo.productservice.util.CursorUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,14 +73,47 @@ class ProductControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/products - should return list of products")
-    void getAllProducts_Returns200() throws Exception {
-        when(productService.getAllProducts()).thenReturn(List.of(testResponse));
+    @DisplayName("GET /api/products - should return cursor page of products")
+    void getProducts_Returns200() throws Exception {
+        CursorPage<ProductResponse> page = new CursorPage<>(List.of(testResponse), null, false, 1);
+        when(productService.getProducts(isNull(), eq(10), any(ProductFilter.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/products"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Test Product"))
-                .andExpect(jsonPath("$[0].price").value(99.99));
+                .andExpect(jsonPath("$.data[0].name").value("Test Product"))
+                .andExpect(jsonPath("$.data[0].price").value(99.99))
+                .andExpect(jsonPath("$.hasMore").value(false));
+    }
+
+    @Test
+    @DisplayName("GET /api/products - should forward cursor and filter params to service")
+    void getProducts_WithCursorAndFilters_ForwardsParams() throws Exception {
+        String cursor = CursorUtil.encode(5L);
+        CursorPage<ProductResponse> page = new CursorPage<>(List.of(testResponse), CursorUtil.encode(1L), true, 1);
+        when(productService.getProducts(eq(cursor), eq(5), any(ProductFilter.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/products")
+                        .param("cursor", cursor)
+                        .param("size", "5")
+                        .param("name", "Widget")
+                        .param("minPrice", "10.00")
+                        .param("maxPrice", "200.00")
+                        .param("inStock", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.hasMore").value(true))
+                .andExpect(jsonPath("$.nextCursor").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("GET /api/products - should cap page size at 100")
+    void getProducts_SizeCappedAt100() throws Exception {
+        CursorPage<ProductResponse> page = new CursorPage<>(List.of(testResponse), null, false, 1);
+        when(productService.getProducts(isNull(), eq(100), any(ProductFilter.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/products").param("size", "999"))
+                .andExpect(status().isOk());
+
+        verify(productService).getProducts(isNull(), eq(100), any(ProductFilter.class));
     }
 
     @Test

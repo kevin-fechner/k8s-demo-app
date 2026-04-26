@@ -1,9 +1,12 @@
 package com.demo.productservice.controller;
 
+import com.demo.productservice.dto.CursorPage;
+import com.demo.productservice.dto.ProductFilter;
 import com.demo.productservice.dto.ProductRequest;
 import com.demo.productservice.dto.ProductResponse;
 import com.demo.productservice.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -26,11 +30,27 @@ public class ProductController {
 
     private final ProductService productService;
 
-    @Operation(summary = "Get all products", description = "Returns a list of all products")
-    @ApiResponse(responseCode = "200", description = "Successfully retrieved products")
+    @Operation(summary = "Get products with cursor pagination and filtering")
+    @ApiResponse(responseCode = "200", description = "Products retrieved successfully")
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAllProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<CursorPage<ProductResponse>> getProducts(
+            @Parameter(description = "Pagination cursor")
+            @RequestParam(required = false) String cursor,
+            @Parameter(description = "Page size (default 10, max 100)")
+            @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Filter by name (partial match)")
+            @RequestParam(required = false) String name,
+            @Parameter(description = "Minimum price")
+            @RequestParam(required = false) BigDecimal minPrice,
+            @Parameter(description = "Maximum price")
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @Parameter(description = "Filter by stock availability")
+            @RequestParam(required = false) Boolean inStock) {
+
+        // cap size to prevent abuse
+        int pageSize = Math.min(size, 100);
+        ProductFilter filter = new ProductFilter(name, minPrice, maxPrice, inStock);
+        return ResponseEntity.ok(productService.getProducts(cursor, pageSize, filter));
     }
 
     @Operation(summary = "Get product by ID")
@@ -43,10 +63,8 @@ public class ProductController {
     }
 
     @Operation(summary = "Create a new product")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Product created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request")
-    })
+    @ApiResponse(responseCode = "201", description = "Product created successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request")
     @PostMapping
     public ResponseEntity<ProductResponse> createProduct(
             @Valid @RequestBody ProductRequest request) {

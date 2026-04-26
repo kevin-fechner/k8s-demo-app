@@ -11,15 +11,18 @@ import com.demo.orderservice.mapper.OrderMapper;
 import com.demo.orderservice.messaging.OrderEventPublisher;
 import com.demo.orderservice.repository.OrderRepository;
 import com.demo.orderservice.service.impl.OrderServiceImpl;
+import com.demo.orderservice.util.CursorUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.util.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -199,5 +202,73 @@ class OrderServiceTest {
 
         assertThatThrownBy(() -> orderService.deleteOrder(99L))
                 .isInstanceOf(OrderNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("Should return empty cursor page when no orders match")
+    void getOrders_NoResults_ReturnsEmptyPage() {
+        when(orderRepository.findWithCursor(any(), any(), any(), any(), any(), any(Pageable.class)))
+                .thenReturn(List.of());
+
+        CursorPage<OrderResponse> result = orderService.getOrders(
+                null, 10, new OrderFilter(null, null, null, null));
+
+        assertThat(result.data()).isEmpty();
+        assertThat(result.hasMore()).isFalse();
+        assertThat(result.nextCursor()).isNull();
+    }
+
+    @Test
+    @DisplayName("Should return page with hasMore=false when results fit within page size")
+    void getOrders_ResultsWithinPageSize_HasMoreFalse() {
+        when(orderRepository.findWithCursor(any(), any(), any(), any(), any(), any(Pageable.class)))
+                .thenReturn(List.of(testOrder));
+        when(orderMapper.toResponse(testOrder)).thenReturn(testResponse);
+
+        CursorPage<OrderResponse> result = orderService.getOrders(
+                null, 10, new OrderFilter(null, null, null, null));
+
+        assertThat(result.data()).hasSize(1);
+        assertThat(result.hasMore()).isFalse();
+        assertThat(result.nextCursor()).isNull();
+    }
+
+    @Test
+    @DisplayName("Should set hasMore=true and encode the last ID as nextCursor when results exceed page size")
+    void getOrders_ResultsExceedPageSize_HasMoreTrueWithNextCursor() {
+        List<Order> orders = new ArrayList<>();
+        for (int i = 1; i <= 11; i++) {
+            orders.add(Order.builder()
+                    .id((long) i)
+                    .customerName("C" + i)
+                    .customerEmail("c" + i + "@test.com")
+                    .status(OrderStatus.PENDING)
+                    .totalAmount(BigDecimal.TEN)
+                    .items(new ArrayList<>())
+                    .build());
+        }
+        when(orderRepository.findWithCursor(any(), any(), any(), any(), any(), any(Pageable.class)))
+                .thenReturn(orders);
+        orders.subList(0, 10).forEach(o -> when(orderMapper.toResponse(o)).thenReturn(testResponse));
+
+        CursorPage<OrderResponse> result = orderService.getOrders(
+                null, 10, new OrderFilter(null, null, null, null));
+
+        assertThat(result.data()).hasSize(10);
+        assertThat(result.hasMore()).isTrue();
+        assertThat(CursorUtil.decode(result.nextCursor())).isEqualTo(10L);
+    }
+
+    @Test
+    @DisplayName("Should decode cursor and pass the correct ID to the repository")
+    void getOrders_WithCursor_PassesCursorIdToRepository() {
+        String cursor = CursorUtil.encode(5L);
+        when(orderRepository.findWithCursor(any(), any(), any(), any(), any(), any(Pageable.class)))
+                .thenReturn(List.of(testOrder));
+        when(orderMapper.toResponse(testOrder)).thenReturn(testResponse);
+
+        orderService.getOrders(cursor, 10, new OrderFilter(null, null, null, null));
+
+        verify(orderRepository).findWithCursor(eq(5L), any(), any(), any(), any(), any(Pageable.class));
     }
 }

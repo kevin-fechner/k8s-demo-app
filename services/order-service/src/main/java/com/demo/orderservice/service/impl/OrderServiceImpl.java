@@ -13,10 +13,13 @@ import com.demo.orderservice.mapper.OrderMapper;
 import com.demo.orderservice.messaging.OrderEventPublisher;
 import com.demo.orderservice.repository.OrderRepository;
 import com.demo.orderservice.service.OrderService;
+import com.demo.orderservice.util.CursorUtil;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -72,6 +75,37 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findByIdWithItems(id)
                 .map(orderMapper::toResponse)
                 .orElseThrow(() -> new OrderNotFoundException(id));
+    }
+
+    @Override
+    public CursorPage<OrderResponse> getOrders(
+            String cursor, int size, OrderFilter filter) {
+
+        Long cursorId = CursorUtil.decode(cursor);
+        Pageable pageable = PageRequest.of(0, size + 1);
+
+        List<Order> orders = orderRepository.findWithCursor(
+                cursorId,
+                filter.status(),
+                filter.customerEmail(),
+                filter.fromDate(),
+                filter.toDate(),
+                pageable
+        );
+
+        boolean hasMore = orders.size() > size;
+        List<Order> pageData = hasMore ? orders.subList(0, size) : orders;
+
+        String nextCursor = hasMore
+                ? CursorUtil.encode(pageData.getLast().getId())
+                : null;
+
+        return new CursorPage<>(
+                pageData.stream().map(orderMapper::toResponse).toList(),
+                nextCursor,
+                hasMore,
+                pageData.size()
+        );
     }
 
     @Override

@@ -10,12 +10,14 @@ import com.demo.productservice.mapper.ProductMapper;
 import com.demo.productservice.messaging.InventoryEventPublisher;
 import com.demo.productservice.repository.ProductRepository;
 import com.demo.productservice.service.impl.ProductServiceImpl;
+import com.demo.productservice.util.CursorUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -176,6 +178,72 @@ class ProductServiceTest {
 
 		verify(productRepository, never()).save(any());
 		verify(inventoryEventPublisher).publishStockInsufficient(any(StockInsufficientEvent.class));
+	}
+
+	@Test
+	@DisplayName("Should return page without nextCursor when results fit within page size")
+	void getProducts_NoMoreResults_ReturnsPageWithoutNextCursor() {
+		ProductFilter filter = new ProductFilter(null, null, null, null);
+		when(productRepository.findWithCursor(isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+				.thenReturn(List.of(testProduct));
+		when(productMapper.toResponse(testProduct)).thenReturn(testResponse);
+
+		CursorPage<ProductResponse> result = productService.getProducts(null, 10, filter);
+
+		assertThat(result.hasMore()).isFalse();
+		assertThat(result.nextCursor()).isNull();
+		assertThat(result.data()).hasSize(1);
+		assertThat(result.size()).isEqualTo(1);
+	}
+
+	@Test
+	@DisplayName("Should return nextCursor pointing to last item when more results exist")
+	void getProducts_HasMoreResults_ReturnsNextCursor() {
+		Product product2 = Product.builder().id(2L).name("P2").description("D").price(BigDecimal.TEN).stock(5).build();
+		Product product3 = Product.builder().id(3L).name("P3").description("D").price(BigDecimal.TEN).stock(5).build();
+		ProductResponse response2 = new ProductResponse(2L, "P2", "D", BigDecimal.TEN, 5, null, null);
+		ProductFilter filter = new ProductFilter(null, null, null, null);
+
+		// size=2 → service fetches 3; repo returns 3 → hasMore=true, page contains first 2
+		when(productRepository.findWithCursor(isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+				.thenReturn(List.of(testProduct, product2, product3));
+		when(productMapper.toResponse(testProduct)).thenReturn(testResponse);
+		when(productMapper.toResponse(product2)).thenReturn(response2);
+
+		CursorPage<ProductResponse> result = productService.getProducts(null, 2, filter);
+
+		assertThat(result.hasMore()).isTrue();
+		assertThat(result.nextCursor()).isEqualTo(CursorUtil.encode(2L));
+		assertThat(result.data()).hasSize(2);
+	}
+
+	@Test
+	@DisplayName("Should decode cursor and forward the ID to the repository")
+	void getProducts_WithCursor_DecodesAndPassesCursorId() {
+		String cursor = CursorUtil.encode(5L);
+		ProductFilter filter = new ProductFilter(null, null, null, null);
+		when(productRepository.findWithCursor(eq(5L), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+				.thenReturn(List.of(testProduct));
+		when(productMapper.toResponse(testProduct)).thenReturn(testResponse);
+
+		productService.getProducts(cursor, 10, filter);
+
+		verify(productRepository).findWithCursor(eq(5L), isNull(), isNull(), isNull(), isNull(), any(Pageable.class));
+	}
+
+	@Test
+	@DisplayName("Should pass all filter fields to the repository")
+	void getProducts_WithFilter_PassesFilterToRepository() {
+		BigDecimal min = new BigDecimal("10.00");
+		BigDecimal max = new BigDecimal("100.00");
+		ProductFilter filter = new ProductFilter("Widget", min, max, true);
+		when(productRepository.findWithCursor(isNull(), eq("Widget"), eq(min), eq(max), eq(true), any(Pageable.class)))
+				.thenReturn(List.of(testProduct));
+		when(productMapper.toResponse(testProduct)).thenReturn(testResponse);
+
+		productService.getProducts(null, 10, filter);
+
+		verify(productRepository).findWithCursor(isNull(), eq("Widget"), eq(min), eq(max), eq(true), any(Pageable.class));
 	}
 
 	@Test

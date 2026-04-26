@@ -3,6 +3,8 @@ package com.demo.productservice.service.impl;
 import com.demo.events.inventory.StockInsufficientEvent;
 import com.demo.events.inventory.StockUpdatedEvent;
 import com.demo.events.order.OrderCreatedEvent;
+import com.demo.productservice.dto.CursorPage;
+import com.demo.productservice.dto.ProductFilter;
 import com.demo.productservice.dto.ProductRequest;
 import com.demo.productservice.dto.ProductResponse;
 import com.demo.productservice.entity.Product;
@@ -11,10 +13,13 @@ import com.demo.productservice.mapper.ProductMapper;
 import com.demo.productservice.messaging.InventoryEventPublisher;
 import com.demo.productservice.repository.ProductRepository;
 import com.demo.productservice.service.ProductService;
+import com.demo.productservice.util.CursorUtil;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -49,6 +54,38 @@ public class ProductServiceImpl implements ProductService {
                 .stream()
                 .map(productMapper::toResponse)
                 .toList();
+    }
+
+    @Override
+    public CursorPage<ProductResponse> getProducts(
+            String cursor, int size, ProductFilter filter) {
+
+        Long cursorId = CursorUtil.decode(cursor);
+        // fetch size+1 to determine if there are more results
+        Pageable pageable = PageRequest.of(0, size + 1);
+
+        List<Product> products = productRepository.findWithCursor(
+                cursorId,
+                filter.name(),
+                filter.minPrice(),
+                filter.maxPrice(),
+                filter.inStock(),
+                pageable
+        );
+
+        boolean hasMore = products.size() > size;
+        List<Product> pageData = hasMore ? products.subList(0, size) : products;
+
+        String nextCursor = hasMore
+                ? CursorUtil.encode(pageData.getLast().getId())
+                : null;
+
+        return new CursorPage<>(
+                pageData.stream().map(productMapper::toResponse).toList(),
+                nextCursor,
+                hasMore,
+                pageData.size()
+        );
     }
 
     @Override

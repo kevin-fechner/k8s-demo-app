@@ -1,6 +1,8 @@
 package com.demo.productservice.service;
 
 import com.demo.events.order.OrderCreatedEvent;
+import com.demo.productservice.dto.CursorPage;
+import com.demo.productservice.dto.ProductFilter;
 import com.demo.productservice.dto.ProductRequest;
 import com.demo.productservice.dto.ProductResponse;
 
@@ -9,6 +11,8 @@ import java.util.List;
 public interface ProductService {
 
     List<ProductResponse> getAllProducts();
+
+    CursorPage<ProductResponse> getProducts(String cursor, int size, ProductFilter filter);
 
     ProductResponse getProductById(Long id);
 
