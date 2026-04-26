@@ -32,11 +32,9 @@ public class ProductController {
     }
 
     @Operation(summary = "Get product by ID")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Product found"),
-            @ApiResponse(responseCode = "404", description = "Product not found",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
+    @ApiResponse(responseCode = "200", description = "Product found")
+    @ApiResponse(responseCode = "404", description = "Product not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
         return ResponseEntity.ok(productService.getProductById(id));
@@ -55,12 +53,10 @@ public class ProductController {
     }
 
     @Operation(summary = "Update a product")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Product updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request"),
-            @ApiResponse(responseCode = "404", description = "Product not found",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
+    @ApiResponse(responseCode = "200", description = "Product updated successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request")
+    @ApiResponse(responseCode = "404", description = "Product not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> updateProduct(
             @PathVariable Long id,
@@ -69,11 +65,9 @@ public class ProductController {
     }
 
     @Operation(summary = "Delete product")
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Product deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Product not found",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
+    @ApiResponse(responseCode = "204", description = "Product deleted successfully")
+    @ApiResponse(responseCode = "404", description = "Product not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);

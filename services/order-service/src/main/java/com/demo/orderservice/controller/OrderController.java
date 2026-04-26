@@ -32,11 +32,9 @@ public class OrderController {
     }
 
     @Operation(summary = "Get order by ID")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Order found"),
-            @ApiResponse(responseCode = "404", description = "Order not found",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
+    @ApiResponse(responseCode = "200", description = "Order found")
+    @ApiResponse(responseCode = "404", description = "Order not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.getOrderById(id));
@@ -46,11 +44,9 @@ public class OrderController {
             summary = "Create a new order",
             description = "Creates an order and publishes an OrderCreatedEvent to Kafka"
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Order created successfully"),
-            @ApiResponse(responseCode = "422", description = "Product not available"),
-            @ApiResponse(responseCode = "400", description = "Invalid request")
-    })
+    @ApiResponse(responseCode = "201", description = "Order created successfully")
+    @ApiResponse(responseCode = "422", description = "Product not available")
+    @ApiResponse(responseCode = "400", description = "Invalid request")
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(
             @Valid @RequestBody OrderRequest request) {
@@ -60,12 +56,10 @@ public class OrderController {
 
     @Operation(summary = "Update order status",
             description = "Updates status and publishes OrderStatusChangedEvent to Kafka")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Order status updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request"),
-            @ApiResponse(responseCode = "404", description = "Order not found",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
+    @ApiResponse(responseCode = "200", description = "Order status updated successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request")
+    @ApiResponse(responseCode = "404", description = "Order not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @PatchMapping("/{id}/status")
     public ResponseEntity<OrderResponse> updateStatus(
             @PathVariable Long id,
@@ -74,11 +68,9 @@ public class OrderController {
     }
 
     @Operation(summary = "Delete order")
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Order deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Order not found",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
+    @ApiResponse(responseCode = "204", description = "Order deleted successfully")
+    @ApiResponse(responseCode = "404", description = "Order not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         orderService.deleteOrder(id);
