@@ -81,6 +81,17 @@
   }
 </div>
 
+@if (store.hasMore()) {
+  <div class="load-more">
+    <button class="btn-secondary"
+            (click)="store.loadMore()"
+            [disabled]="store.loading()"
+            aria-label="Load more orders">
+      Load more
+    </button>
+  </div>
+}
+
 @if (store.showForm()) {
   <app-order-form
     (saved)="store.closeForm()"

@@ -37,3 +37,10 @@ export interface OrderRequest {
 export interface UpdateStatusRequest {
   status: OrderStatus;
 }
+
+export interface OrderFilter {
+  status?: OrderStatus;
+  customerEmail?: string;
+  fromDate?: string;
+  toDate?: string;
+}

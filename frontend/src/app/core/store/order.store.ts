@@ -8,6 +8,8 @@ import {Order, OrderRequest, UpdateStatusRequest} from '../models/order.model';
 
 interface OrderState {
   orders: Order[];
+  cursor: string | null;
+  hasMore: boolean;
   loading: boolean;
   error: string | null;
   showForm: boolean;
@@ -15,6 +17,8 @@ interface OrderState {
 
 const initialState: OrderState = {
   orders: [],
+  cursor: null,
+  hasMore: false,
   loading: false,
   error: null,
   showForm: false
@@ -43,14 +47,38 @@ export const OrderStore = signalStore(
       pipe(
         tap(() => patchState(store, {loading: true, error: null})),
         switchMap(() =>
-          orderService.getAll().pipe(
+          orderService.getPage().pipe(
             tapResponse({
-              next: (orders) => patchState(store, {
-                orders,
+              next: (page) => patchState(store, {
+                orders: page.data,
+                cursor: page.nextCursor ?? null,
+                hasMore: page.hasMore,
                 loading: false
               }),
               error: () => patchState(store, {
                 error: 'Failed to load orders. Is the API gateway running?',
+                loading: false
+              })
+            })
+          )
+        )
+      )
+    ),
+
+    loadMore: rxMethod<void>(
+      pipe(
+        tap(() => patchState(store, {loading: true, error: null})),
+        switchMap(() =>
+          orderService.getPage(store.cursor()).pipe(
+            tapResponse({
+              next: (page) => patchState(store, (state) => ({
+                orders: [...state.orders, ...page.data],
+                cursor: page.nextCursor ?? null,
+                hasMore: page.hasMore,
+                loading: false
+              })),
+              error: () => patchState(store, {
+                error: 'Failed to load more orders.',
                 loading: false
               })
             })

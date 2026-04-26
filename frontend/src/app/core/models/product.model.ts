@@ -14,3 +14,10 @@ export interface ProductRequest {
   price: number;
   stock: number;
 }
+
+export interface ProductFilter {
+  name?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+}

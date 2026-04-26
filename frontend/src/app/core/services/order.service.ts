@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Order, OrderRequest, UpdateStatusRequest } from '../models/order.model';
+import { Order, OrderFilter, OrderRequest, UpdateStatusRequest } from '../models/order.model';
+import { CursorPage } from '../models/pagination.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -9,8 +10,14 @@ export class OrderService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/api/orders`;
 
-  getAll(): Observable<Order[]> {
-    return this.http.get<Order[]>(this.apiUrl);
+  getPage(cursor?: string | null, size = 10, filter?: OrderFilter): Observable<CursorPage<Order>> {
+    let params = new HttpParams().set('size', size);
+    if (cursor) params = params.set('cursor', cursor);
+    if (filter?.status) params = params.set('status', filter.status);
+    if (filter?.customerEmail) params = params.set('customerEmail', filter.customerEmail);
+    if (filter?.fromDate) params = params.set('fromDate', filter.fromDate);
+    if (filter?.toDate) params = params.set('toDate', filter.toDate);
+    return this.http.get<CursorPage<Order>>(this.apiUrl, { params });
   }
 
   getById(id: number): Observable<Order> {

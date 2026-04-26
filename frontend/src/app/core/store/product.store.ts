@@ -8,6 +8,8 @@ import {Product, ProductRequest} from '../models/product.model';
 
 interface ProductState {
   products: Product[];
+  cursor: string | null;
+  hasMore: boolean;
   selectedProduct: Product | null;
   loading: boolean;
   error: string | null;
@@ -16,6 +18,8 @@ interface ProductState {
 
 const initialState: ProductState = {
   products: [],
+  cursor: null,
+  hasMore: false,
   selectedProduct: null,
   loading: false,
   error: null,
@@ -43,14 +47,38 @@ export const ProductStore = signalStore(
       pipe(
         tap(() => patchState(store, {loading: true, error: null})),
         switchMap(() =>
-          productService.getAll().pipe(
+          productService.getPage().pipe(
             tapResponse({
-              next: (products) => patchState(store, {
-                products,
+              next: (page) => patchState(store, {
+                products: page.data,
+                cursor: page.nextCursor ?? null,
+                hasMore: page.hasMore,
                 loading: false
               }),
               error: () => patchState(store, {
                 error: 'Failed to load products. Is the API gateway running?',
+                loading: false
+              })
+            })
+          )
+        )
+      )
+    ),
+
+    loadMore: rxMethod<void>(
+      pipe(
+        tap(() => patchState(store, {loading: true, error: null})),
+        switchMap(() =>
+          productService.getPage(store.cursor()).pipe(
+            tapResponse({
+              next: (page) => patchState(store, (state) => ({
+                products: [...state.products, ...page.data],
+                cursor: page.nextCursor ?? null,
+                hasMore: page.hasMore,
+                loading: false
+              })),
+              error: () => patchState(store, {
+                error: 'Failed to load more products.',
                 loading: false
               })
             })
