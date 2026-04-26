@@ -86,6 +86,12 @@
             <version>1.6.0</version>
         </dependency>
 
+        <!-- Jackson Afterburner -->
+        <dependency>
+            <groupId>tools.jackson.module</groupId>
+            <artifactId>jackson-module-afterburner</artifactId>
+        </dependency>
+
         <!-- Redis Cache -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
