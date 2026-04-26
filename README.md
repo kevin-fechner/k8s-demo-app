@@ -8,6 +8,7 @@ A full-stack microservices application demonstrating a production-like Kubernete
 ![Angular](https://img.shields.io/badge/Angular-21-red)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-1.29-blue)
 ![Kafka](https://img.shields.io/badge/Apache%20Kafka-4.1.0-black)
+![Redis](https://img.shields.io/badge/Redis-7.4-red)
 ![Prometheus](https://img.shields.io/badge/Prometheus-monitoring-orange)
 ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-tracing-blueviolet)
 
@@ -24,6 +25,7 @@ http://demo-app.local
         ├── API Gateway (Spring Cloud Gateway)
         │         │
         │         ├── /api/products ──► Product Service ──► PostgreSQL
+        │                                   └──► Redis (product cache)
         │         └── /api/orders   ──► Order Service   ──► PostgreSQL
         │
         └── Event-Driven Communication (Apache Kafka)
@@ -45,12 +47,13 @@ Deployed via ArgoCD (GitOps) · Built via GitHub Actions + SonarCloud
 |---|---|---|---|
 | `frontend` | Angular 21, NgRx Signal Store | 80 | SPA served by nginx |
 | `api-gateway` | Spring Cloud Gateway 2025.1.1 | 8080 | Single entry point, routing, CORS |
-| `product-service` | Spring Boot 4.0.5, JPA, Flyway | 8081 | Product CRUD + stock reservation via Kafka |
+| `product-service` | Spring Boot 4.0.5, JPA, Flyway, Redis | 8081 | Product CRUD + stock reservation via Kafka |
 | `order-service` | Spring Boot 4.0.5, JPA, Flyway | 8082 | Order management + Kafka event publisher |
 | `notification-service` | Spring Boot 4.0.5, Thymeleaf | 8083 | Listens to order events, sends HTML emails |
 | `products-db` | PostgreSQL 16 (CloudNativePG) | 5432 | Products database |
 | `orders-db` | PostgreSQL 16 (CloudNativePG) | 5432 | Orders database |
 | `notifications-db` | PostgreSQL 16 (CloudNativePG) | 5432 | Processed event deduplication store |
+| `redis` | Redis 7.4 (Alpine) | 6379 | Product cache (LRU, 128 MB) |
 | `kafka-cluster` | Apache Kafka 4.1.0 (Strimzi, KRaft) | 9092 | Event streaming |
 | `mailhog` | MailHog 1.0.1 | 1025/8025 | SMTP mock server for development |
 | `prometheus` | Prometheus (monitoring ns) | 9090 | Metrics collection and storage |
@@ -66,6 +69,7 @@ Deployed via ArgoCD (GitOps) · Built via GitHub Actions + SonarCloud
 - **Spring Cloud Gateway 2025.1.1** for API routing
 - **Spring Data JPA** + **Hibernate 7**
 - **Spring Kafka** for event-driven messaging
+- **Spring Data Redis** + **Spring Cache** for distributed caching
 - **Flyway** for database migrations
 - **Thymeleaf** for HTML email templates
 - **MapStruct 1.6** for DTO mapping
@@ -88,6 +92,7 @@ Deployed via ArgoCD (GitOps) · Built via GitHub Actions + SonarCloud
 - **ArgoCD** for GitOps deployments
 - **CloudNativePG** operator for PostgreSQL
 - **Strimzi** operator for Apache Kafka
+- **Redis 7.4** (Alpine) for caching
 - **NGINX Ingress Controller**
 - **MailHog** for development email testing
 
@@ -150,6 +155,43 @@ product-service (after reserving)
 ### Idempotency
 
 Each consuming service stores processed event IDs in PostgreSQL (`ProcessedEvent` table) to prevent duplicate handling on Kafka consumer restarts or rebalances.
+
+---
+
+## Redis Caching
+
+`product-service` uses Redis as a distributed cache to reduce database load on product lookups.
+
+### What is cached
+
+| Cache name | Key | TTL | Populated by |
+|---|---|---|---|
+| `products` | product ID | 5 minutes | `GET /api/products/{id}` |
+
+Only individual product lookups are cached. List queries hit the database directly.
+
+### Cache invalidation
+
+Cache entries are evicted eagerly on any write:
+
+| Operation | Trigger | Mechanism |
+|---|---|---|
+| Update product | `PUT /api/products/{id}` | `@CacheEvict` |
+| Delete product | `DELETE /api/products/{id}` | `@CacheEvict` |
+| Stock reserved | `StockUpdatedEvent` (Kafka) | Programmatic evict via `CacheManager` |
+
+The Kafka-driven eviction ensures the cache stays consistent when stock changes are applied asynchronously — a cached product entry is removed as soon as the `product-service` processes the inventory event.
+
+### Configuration
+
+| Setting | Value |
+|---|---|
+| Host | `redis.demo-app.svc.cluster.local:6379` |
+| TTL | 300 s |
+| Max memory | 128 MB |
+| Eviction policy | `allkeys-lru` |
+| Serialization | JSON (`GenericJacksonJsonRedisSerializer`) |
+| Null caching | Disabled |
 
 ---
 
@@ -218,6 +260,7 @@ k8s-demo-app/
 │   ├── kafka-topics.yaml
 │   ├── ingress.yaml
 │   ├── mailhog.yaml
+│   ├── redis.yaml
 │   ├── argocd-apps.yaml
 │   ├── prometheus-values.yaml    # Helm values for Prometheus (pod scraping, ingress)
 │   └── prometheus-rbac.yaml     # ClusterRole for Prometheus pod discovery
@@ -486,6 +529,9 @@ kubectl apply -f k8s/kafka-topics.yaml
 
 # Deploy MailHog (SMTP mock)
 kubectl apply -f k8s/mailhog.yaml
+
+# Deploy Redis (product cache)
+kubectl apply -f k8s/redis.yaml
 
 # Wait for databases and Kafka to be ready
 kubectl get pods -n databases -w
@@ -764,6 +810,25 @@ kubectl get pods -n demo-app --show-labels | grep app.kubernetes.io/name
 
 # Check Prometheus pod logs
 kubectl logs -n monitoring -l app.kubernetes.io/name=prometheus -c prometheus-server
+```
+
+### Redis cache not working / product-service failing to start
+
+```bash
+# Check Redis pod is running
+kubectl get pods -n demo-app -l app.kubernetes.io/name=redis
+
+# Ping Redis from inside the cluster
+kubectl exec -n demo-app deploy/product-service -- \
+  redis-cli -h redis.demo-app.svc.cluster.local ping
+
+# Inspect cache contents
+kubectl exec -n demo-app -l app.kubernetes.io/name=redis -- \
+  redis-cli keys "products::*"
+
+# Flush the cache (forces DB reads on next request)
+kubectl exec -n demo-app -l app.kubernetes.io/name=redis -- \
+  redis-cli flushdb
 ```
 
 ### Traces not appearing in Tempo
