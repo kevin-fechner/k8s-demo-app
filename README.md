@@ -234,6 +234,13 @@ k8s-demo-app/
 
 ## API Reference
 
+Interactive API documentation is available via Swagger UI:
+
+| Service | URL |
+|---|---|
+| Order Service | http://demo-app.local/api/order-service/swagger-ui.html |
+| Product Service | http://demo-app.local/api/product-service/swagger-ui.html |
+
 ### Product Service — `/api/products`
 
 | Method | Endpoint | Description |
@@ -487,6 +494,8 @@ echo "127.0.0.1 mailhog.local" | sudo tee -a /etc/hosts
 | http://demo-app.local/health | System health dashboard |
 | http://demo-app.local/api/products | Products API |
 | http://demo-app.local/api/orders | Orders API |
+| http://demo-app.local/api/order-service/swagger-ui.html | Order Service Swagger UI |
+| http://demo-app.local/api/product-service/swagger-ui.html | Product Service Swagger UI |
 | https://argocd.local | ArgoCD dashboard |
 | http://mailhog.local:8025 | MailHog web UI (inspect sent emails) |
 | http://prometheus.local | Prometheus metrics UI |
