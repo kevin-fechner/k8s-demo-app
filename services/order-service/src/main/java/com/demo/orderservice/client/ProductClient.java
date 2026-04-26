@@ -27,7 +27,7 @@ public class ProductClient {
         log.debug("Fetching product {} from product-service", id);
         try {
             ProductDto product = restClient.get()
-                    .uri(productServiceUrl + "/products/{id}", id)
+                    .uri(productServiceUrl + "/api/products/{id}", id)
                     .retrieve()
                     .body(ProductDto.class);
             return Optional.ofNullable(product);
