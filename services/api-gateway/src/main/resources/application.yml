@@ -62,6 +62,7 @@ spring:
                 - Path=/api/order-service/swagger-ui.html,/api/order-service/swagger-ui/**,/api/order-service/api-docs/**,/api/order-service/webjars/**
               filters:
                 - StripPrefix=2
+                - RewriteResponseHeader=Location, ^/swagger-ui/, /api/order-service/swagger-ui/
 
             - id: product-service-swagger
               uri: ${PRODUCT_SERVICE_URL:http://localhost:8081}
@@ -69,6 +70,7 @@ spring:
                 - Path=/api/product-service/swagger-ui.html,/api/product-service/swagger-ui/**,/api/product-service/api-docs/**,/api/product-service/webjars/**
               filters:
                 - StripPrefix=2
+                - RewriteResponseHeader=Location, ^/swagger-ui/, /api/product-service/swagger-ui/
 
           globalcors:
             cors-configurations:
