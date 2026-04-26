@@ -263,6 +263,45 @@ Interactive API documentation is available via Swagger UI:
 
 Order status values: `PENDING`, `CONFIRMED`, `SHIPPED`, `DELIVERED`, `CANCELLED`
 
+### Pagination
+
+Both services support cursor-based pagination:
+
+| Parameter | Description | Example |
+|---|---|---|
+| `cursor` | Pagination cursor from previous response | `eyJpZCI6MTV9` |
+| `size` | Page size (default 10, max 100) | `20` |
+
+Response format:
+\```json
+{
+  "data": [...],
+  "nextCursor": "eyJpZCI6MTV9",
+  "hasMore": true,
+  "size": 10
+}
+\```
+
+Use `nextCursor` from the response as the `cursor` parameter in the next request. When `hasMore` is `false` you have reached the last page.
+
+### Product Filters
+
+| Parameter | Description | Example |
+|---|---|---|
+| `name` | Partial name match (case-insensitive) | `keyboard` |
+| `minPrice` | Minimum price | `50.00` |
+| `maxPrice` | Maximum price | `200.00` |
+| `inStock` | Filter by stock availability | `true` |
+
+### Order Filters
+
+| Parameter | Description | Example |
+|---|---|---|
+| `status` | Order status | `CONFIRMED` |
+| `customerEmail` | Partial email match | `kevin@demo-app.local` |
+| `fromDate` | Start date (ISO format) | `2026-04-01T00:00:00` |
+| `toDate` | End date (ISO format) | `2026-04-30T23:59:59` |
+
 ---
 
 ## Health Dashboard

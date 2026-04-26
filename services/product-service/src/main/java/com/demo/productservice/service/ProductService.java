@@ -6,8 +6,6 @@ import com.demo.productservice.dto.ProductFilter;
 import com.demo.productservice.dto.ProductRequest;
 import com.demo.productservice.dto.ProductResponse;
 
-import java.util.List;
-
 public interface ProductService {
 
     CursorPage<ProductResponse> getProducts(String cursor, int size, ProductFilter filter);

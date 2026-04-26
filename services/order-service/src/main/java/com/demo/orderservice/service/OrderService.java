@@ -2,8 +2,6 @@ package com.demo.orderservice.service;
 
 import com.demo.orderservice.dto.*;
 
-import java.util.List;
-
 public interface OrderService {
     OrderResponse getOrderById(Long id);
 
