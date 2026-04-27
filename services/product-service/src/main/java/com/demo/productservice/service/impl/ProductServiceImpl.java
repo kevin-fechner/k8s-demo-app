@@ -16,6 +16,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.PageRequest;
@@ -100,7 +101,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @CacheEvict(value = "stock")
+    @CacheEvict(value = "stock", allEntries = true)
     @Transactional
     public ProductResponse createProduct(ProductRequest request) {
         log.info("Creating product: {}", request.name());
@@ -110,10 +111,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Caching(evict = {
-            @CacheEvict(value = "products", key = "#id"),
-            @CacheEvict(cacheNames = "stock")
-    })
+    @Caching(
+            put = @CachePut(value = "products", key = "#id"),
+            evict = @CacheEvict(cacheNames = "stock", allEntries = true)
+    )
     @Transactional
     public ProductResponse updateProduct(Long id, ProductRequest request) {
         log.info("Updating product with id: {}", id);
@@ -135,7 +136,7 @@ public class ProductServiceImpl implements ProductService {
                     var cache = cacheManager.getCache("products");
                     if (cache != null) cache.evict(product.getId());
                     cache = cacheManager.getCache("stock");
-                    if (cache != null) cache.evict("");
+                    if (cache != null) cache.clear();
                     stockReservationsCounter.increment();
 
                     inventoryEventPublisher.publishStockUpdated(new StockUpdatedEvent(
@@ -163,7 +164,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Caching(evict = {
             @CacheEvict(value = "products", key = "#id"),
-            @CacheEvict(cacheNames = "stock")
+            @CacheEvict(cacheNames = "stock", allEntries = true)
     })
     @Transactional
     public void deleteProduct(Long id) {
