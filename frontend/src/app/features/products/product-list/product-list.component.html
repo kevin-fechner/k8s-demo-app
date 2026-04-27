@@ -1,9 +1,9 @@
 <div class="page-header">
   <h1>Products</h1>
   <div class="header-stats">
-    <span class="stat">Total: {{ store.totalProducts() }}</span>
-    <span class="stat in-stock">In stock: {{ store.inStockProducts() }}</span>
-    <span class="stat out-of-stock">Out of stock: {{ store.outOfStockProducts() }}</span>
+    <span class="stat">Total: {{ store.stockNumbers.total() }}</span>
+    <span class="stat in-stock">In stock: {{ store.stockNumbers.inStock() }}</span>
+    <span class="stat out-of-stock">Out of stock: {{ store.stockNumbers.outOfStock() }}</span>
   </div>
   <button class="btn-primary" (click)="store.openForm()">
     + Add Product

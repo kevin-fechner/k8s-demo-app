@@ -3,10 +3,7 @@ package com.demo.productservice.service.impl;
 import com.demo.events.inventory.StockInsufficientEvent;
 import com.demo.events.inventory.StockUpdatedEvent;
 import com.demo.events.order.OrderCreatedEvent;
-import com.demo.productservice.dto.CursorPage;
-import com.demo.productservice.dto.ProductFilter;
-import com.demo.productservice.dto.ProductRequest;
-import com.demo.productservice.dto.ProductResponse;
+import com.demo.productservice.dto.*;
 import com.demo.productservice.entity.Product;
 import com.demo.productservice.exception.ProductNotFoundException;
 import com.demo.productservice.mapper.ProductMapper;
@@ -20,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -95,15 +93,27 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Cacheable(value = "stock")
+    public StockResponse getStockNumbers() {
+        log.info("Fetching stock numbers");
+        return productRepository.getStockNumbers();
+    }
+
+    @Override
+    @CacheEvict(value = "stock")
     @Transactional
     public ProductResponse createProduct(ProductRequest request) {
         log.info("Creating product: {}", request.name());
         Product product = productMapper.toProduct(request);
-        return productMapper.toResponse(productRepository.save(product));
+        Product save = productRepository.save(product);
+        return productMapper.toResponse(save);
     }
 
     @Override
-    @CacheEvict(value = "products", key = "#id")
+    @Caching(evict = {
+            @CacheEvict(value = "products", key = "#id"),
+            @CacheEvict(cacheNames = "stock")
+    })
     @Transactional
     public ProductResponse updateProduct(Long id, ProductRequest request) {
         log.info("Updating product with id: {}", id);
@@ -124,6 +134,8 @@ public class ProductServiceImpl implements ProductService {
                     productRepository.save(product);
                     var cache = cacheManager.getCache("products");
                     if (cache != null) cache.evict(product.getId());
+                    cache = cacheManager.getCache("stock");
+                    if (cache != null) cache.evict("");
                     stockReservationsCounter.increment();
 
                     inventoryEventPublisher.publishStockUpdated(new StockUpdatedEvent(
@@ -149,7 +161,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @CacheEvict(value = "products", key = "#id")
+    @Caching(evict = {
+            @CacheEvict(value = "products", key = "#id"),
+            @CacheEvict(cacheNames = "stock")
+    })
     @Transactional
     public void deleteProduct(Long id) {
         log.info("Deleting product with id: {}", id);

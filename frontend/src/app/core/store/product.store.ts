@@ -5,6 +5,7 @@ import {tapResponse} from '@ngrx/operators';
 import {pipe, switchMap, tap} from 'rxjs';
 import {ProductService} from '../services/product.service';
 import {Product, ProductRequest} from '../models/product.model';
+import {StockNumbers} from '../models/stock-numbers.model';
 
 interface ProductState {
   products: Product[];
@@ -14,6 +15,7 @@ interface ProductState {
   loading: boolean;
   error: string | null;
   showForm: boolean;
+  stockNumbers: StockNumbers;
 }
 
 const initialState: ProductState = {
@@ -23,7 +25,8 @@ const initialState: ProductState = {
   selectedProduct: null,
   loading: false,
   error: null,
-  showForm: false
+  showForm: false,
+  stockNumbers: {total: 0, inStock: 0, outOfStock: 0}
 };
 
 export const ProductStore = signalStore(
@@ -31,17 +34,24 @@ export const ProductStore = signalStore(
 
   withState(initialState),
 
-  withComputed(({products}) => ({
-    totalProducts: computed(() => products().length),
-    inStockProducts: computed(() =>
-      products().filter(p => p.stock > 0).length
-    ),
-    outOfStockProducts: computed(() =>
-      products().filter(p => p.stock === 0).length
-    )
-  })),
-
   withMethods((store, productService = inject(ProductService)) => ({
+
+    loadStockNumbers: rxMethod<void>(
+      pipe(
+        switchMap(() =>
+          productService.getStockNumbers().pipe(
+            tapResponse({
+              next: (stockNumbers) => patchState(store, {
+                stockNumbers
+              }),
+              error: () => patchState(store, {
+                error: 'Failed to load stock numbers. Is the API gateway running?',
+              })
+            })
+          )
+        )
+      )
+    ),
 
     loadProducts: rxMethod<void>(
       pipe(

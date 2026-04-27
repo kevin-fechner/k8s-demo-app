@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { Product, ProductFilter, ProductRequest } from '../models/product.model';
 import { CursorPage } from '../models/pagination.model';
 import { environment } from '../../../environments/environment';
+import {StockNumbers} from '../models/stock-numbers.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
@@ -22,6 +23,10 @@ export class ProductService {
 
   getById(id: number): Observable<Product> {
     return this.http.get<Product>(`${this.apiUrl}/${id}`);
+  }
+
+  getStockNumbers(): Observable<StockNumbers> {
+    return this.http.get<StockNumbers>(`${this.apiUrl}/stock-numbers`);
   }
 
   create(request: ProductRequest): Observable<Product> {

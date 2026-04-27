@@ -1,9 +1,6 @@
 package com.demo.productservice.controller;
 
-import com.demo.productservice.dto.CursorPage;
-import com.demo.productservice.dto.ProductFilter;
-import com.demo.productservice.dto.ProductRequest;
-import com.demo.productservice.dto.ProductResponse;
+import com.demo.productservice.dto.*;
 import com.demo.productservice.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -58,6 +55,13 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
         return ResponseEntity.ok(productService.getProductById(id));
+    }
+
+    @Operation(summary = "Get product stock numbers")
+    @ApiResponse(responseCode = "200", description = "Stock numbers retrieved successfully")
+    @GetMapping("/stock-numbers")
+    public ResponseEntity<StockResponse> getStockNumbers() {
+        return ResponseEntity.ok(productService.getStockNumbers());
     }
 
     @Operation(summary = "Create a new product")
