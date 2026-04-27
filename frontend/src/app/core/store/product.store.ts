@@ -1,5 +1,5 @@
-import {patchState, signalStore, withComputed, withHooks, withMethods, withState} from '@ngrx/signals';
-import {computed, inject} from '@angular/core';
+import {patchState, signalStore, withHooks, withMethods, withState} from '@ngrx/signals';
+import {inject} from '@angular/core';
 import {rxMethod} from '@ngrx/signals/rxjs-interop';
 import {tapResponse} from '@ngrx/operators';
 import {pipe, switchMap, tap} from 'rxjs';
@@ -41,9 +41,7 @@ export const ProductStore = signalStore(
         switchMap(() =>
           productService.getStockNumbers().pipe(
             tapResponse({
-              next: (stockNumbers) => patchState(store, {
-                stockNumbers
-              }),
+              next: (stockNumbers) => patchState(store, {stockNumbers}),
               error: () => patchState(store, {
                 error: 'Failed to load stock numbers. Is the API gateway running?',
               })
@@ -96,6 +94,9 @@ export const ProductStore = signalStore(
         )
       )
     ),
+  })),
+
+  withMethods((store, productService = inject(ProductService)) => ({
 
     createProduct: rxMethod<ProductRequest>(
       pipe(
@@ -103,12 +104,15 @@ export const ProductStore = signalStore(
         switchMap((request) =>
           productService.create(request).pipe(
             tapResponse({
-              next: (product) => patchState(store, (state) => ({
-                products: [...state.products, product],
-                loading: false,
-                showForm: false,
-                selectedProduct: null
-              })),
+              next: (product) => {
+                patchState(store, (state) => ({
+                  products: [...state.products, product],
+                  loading: false,
+                  showForm: false,
+                  selectedProduct: null
+                }));
+                store.loadStockNumbers();
+              },
               error: () => patchState(store, {
                 error: 'Failed to create product.',
                 loading: false
@@ -125,14 +129,15 @@ export const ProductStore = signalStore(
         switchMap(({id, request}) =>
           productService.update(id, request).pipe(
             tapResponse({
-              next: (updated) => patchState(store, (state) => ({
-                products: state.products.map(p =>
-                  p.id === updated.id ? updated : p
-                ),
-                loading: false,
-                showForm: false,
-                selectedProduct: null
-              })),
+              next: (updated) => {
+                patchState(store, (state) => ({
+                  products: state.products.map(p => p.id === updated.id ? updated : p),
+                  loading: false,
+                  showForm: false,
+                  selectedProduct: null
+                }));
+                store.loadStockNumbers();
+              },
               error: () => patchState(store, {
                 error: 'Failed to update product.',
                 loading: false
@@ -149,10 +154,13 @@ export const ProductStore = signalStore(
         switchMap((id) =>
           productService.delete(id).pipe(
             tapResponse({
-              next: () => patchState(store, (state) => ({
-                products: state.products.filter(p => p.id !== id),
-                loading: false
-              })),
+              next: () => {
+                patchState(store, (state) => ({
+                  products: state.products.filter(p => p.id !== id),
+                  loading: false
+                }));
+                store.loadStockNumbers();
+              },
               error: () => patchState(store, {
                 error: 'Failed to delete product.',
                 loading: false
