@@ -185,6 +185,7 @@ export const ProductStore = signalStore(
   withHooks({
     onInit(store) {
       store.loadProducts();
+      store.loadStockNumbers();
     }
   })
 );
