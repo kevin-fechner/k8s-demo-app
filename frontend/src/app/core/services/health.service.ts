@@ -21,6 +21,10 @@ export class HealthService {
   private readonly http = inject(HttpClient);
   private readonly apiUrlService = inject(ApiUrlService);
 
+  private get apiUrl(): string {
+    return `${this.apiUrlService.baseUrl}`;
+  }
+
   private readonly services = [
     { name: 'API Gateway',           path: 'gateway' },
     { name: 'Order Service',         path: 'order-service' },
@@ -42,12 +46,12 @@ export class HealthService {
   }
 
   private fetchHealth(path: string): Observable<any> {
-    return this.http.get(`${this.apiUrlService.baseUrl}/api/${path}/actuator/health`)
+    return this.http.get(`${this.apiUrl}/api/${path}/actuator/health`)
       .pipe(catchError(() => of({ status: 'DOWN' })));
   }
 
   private fetchMetrics(path: string): Observable<any> {
-    const base = `${this.apiUrlService.baseUrl}/api/${path}/actuator/metrics`;
+    const base = `${this.apiUrl}/api/${path}/actuator/metrics`;
     return forkJoin({
       memUsed: this.http.get(`${base}/jvm.memory.used`).pipe(catchError(() => of(null))),
       memMax:  this.http.get(`${base}/jvm.memory.max`).pipe(catchError(() => of(null))),

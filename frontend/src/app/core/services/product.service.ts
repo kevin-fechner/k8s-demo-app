@@ -10,7 +10,10 @@ import {ApiUrlService} from './api-url.service';
 export class ProductService {
   private readonly http = inject(HttpClient);
   private readonly apiUrlService = inject(ApiUrlService);
-  private readonly apiUrl = `${this.apiUrlService.baseUrl}/api/products`;
+
+  private get apiUrl(): string {
+    return `${this.apiUrlService.baseUrl}/api/products`;
+  }
 
   getPage(cursor?: string | null, size = 10, filter?: ProductFilter): Observable<CursorPage<Product>> {
     let params = new HttpParams().set('size', size);
