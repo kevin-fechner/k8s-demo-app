@@ -105,6 +105,12 @@ export const ProductStore = signalStore(
         loading: false
       });
     },
+
+    setInitialStockNumbers(stock: StockNumbers): void {
+      patchState(store, {
+        stockNumbers: stock
+      });
+    },
   })),
 
   withMethods((store, productService = inject(ProductService)) => ({

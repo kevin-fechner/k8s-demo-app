@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { forkJoin, Observable, catchError, of } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { ApiUrlService } from './api-url.service';
+import {inject, Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {catchError, forkJoin, Observable, of} from 'rxjs';
+import {map} from 'rxjs/operators';
+import {ApiUrlService} from './api-url.service';
 
 export interface ServiceHealth {
   name: string;

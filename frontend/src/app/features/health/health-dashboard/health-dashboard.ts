@@ -1,6 +1,6 @@
-import {Component, OnInit, OnDestroy, inject, signal} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {interval, Subscription, startWith, switchMap} from 'rxjs';
+import {interval, startWith, Subscription, switchMap} from 'rxjs';
 import {HealthService, ServiceHealth} from '../../../core/services/health.service';
 
 @Component({

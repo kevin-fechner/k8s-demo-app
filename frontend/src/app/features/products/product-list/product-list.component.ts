@@ -17,15 +17,18 @@ export class ProductListComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
 
   ngOnInit() {
-    // Use resolved data on first load (works with SSR)
     const resolvedPage = this.route.snapshot.data['productsPage'];
     if (resolvedPage?.data?.length > 0) {
       this.store.setInitialProducts(resolvedPage);
     } else {
-      // Fallback to store load (client-side)
       this.store.loadProducts();
     }
-    this.store.loadStockNumbers();
+    const resolvedStockNumbers = this.route.snapshot.data['stockNumbers'];
+    if (resolvedStockNumbers?.data?.length > 0) {
+      this.store.setInitialStockNumbers(resolvedStockNumbers);
+    } else {
+      this.store.loadStockNumbers();
+    }
   }
 
   confirmDelete(product: Product): void {
