@@ -20,14 +20,10 @@ export class ProductListComponent implements OnInit {
     const resolvedPage = this.route.snapshot.data['productsPage'];
     if (resolvedPage?.data?.length > 0) {
       this.store.setInitialProducts(resolvedPage);
-    } else {
-      this.store.loadProducts();
     }
     const resolvedStockNumbers = this.route.snapshot.data['stockNumbers'];
     if (resolvedStockNumbers?.data?.length > 0) {
       this.store.setInitialStockNumbers(resolvedStockNumbers);
-    } else {
-      this.store.loadStockNumbers();
     }
   }
 
@@ -35,6 +31,4 @@ export class ProductListComponent implements OnInit {
     if (!confirm(`Delete "${product.name}"?`)) return;
     this.store.deleteProduct(product.id);
   }
-
-
 }
