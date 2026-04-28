@@ -130,12 +130,8 @@ export const ProductStore = signalStore(
           productService.update(id, request).pipe(
             tapResponse({
               next: (updated) => {
-                patchState(store, (state) => ({
-                  products: state.products.map(p => p.id === updated.id ? updated : p),
-                  loading: false,
-                  showForm: false,
-                  selectedProduct: null
-                }));
+                const products = store.products().map(p => p.id === updated.id ? updated : p);
+                patchState(store, {products, loading: false, showForm: false, selectedProduct: null});
                 store.loadStockNumbers();
               },
               error: () => patchState(store, {
@@ -155,10 +151,8 @@ export const ProductStore = signalStore(
           productService.delete(id).pipe(
             tapResponse({
               next: () => {
-                patchState(store, (state) => ({
-                  products: state.products.filter(p => p.id !== id),
-                  loading: false
-                }));
+                const products = store.products().filter(p => p.id !== id);
+                patchState(store, {products, loading: false});
                 store.loadStockNumbers();
               },
               error: () => patchState(store, {

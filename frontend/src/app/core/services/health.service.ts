@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, Observable, catchError, of } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { ApiUrlService } from './api-url.service';
 
 export interface ServiceHealth {
   name: string;
@@ -17,9 +18,10 @@ export interface ServiceHealth {
 
 @Injectable({ providedIn: 'root' })
 export class HealthService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
+  private readonly apiUrlService = inject(ApiUrlService);
 
-  private services = [
+  private readonly services = [
     { name: 'API Gateway',           path: 'gateway' },
     { name: 'Order Service',         path: 'order-service' },
     { name: 'Product Service',       path: 'product-service' },
@@ -40,18 +42,16 @@ export class HealthService {
   }
 
   private fetchHealth(path: string): Observable<any> {
-    return this.http.get(`/api/${path}/actuator/health`)
+    return this.http.get(`${this.apiUrlService.baseUrl}/api/${path}/actuator/health`)
       .pipe(catchError(() => of({ status: 'DOWN' })));
   }
 
   private fetchMetrics(path: string): Observable<any> {
+    const base = `${this.apiUrlService.baseUrl}/api/${path}/actuator/metrics`;
     return forkJoin({
-      memUsed: this.http.get(`/api/${path}/actuator/metrics/jvm.memory.used`)
-        .pipe(catchError(() => of(null))),
-      memMax: this.http.get(`/api/${path}/actuator/metrics/jvm.memory.max`)
-        .pipe(catchError(() => of(null))),
-      uptime: this.http.get(`/api/${path}/actuator/metrics/process.uptime`)
-        .pipe(catchError(() => of(null))),
+      memUsed: this.http.get(`${base}/jvm.memory.used`).pipe(catchError(() => of(null))),
+      memMax:  this.http.get(`${base}/jvm.memory.max`).pipe(catchError(() => of(null))),
+      uptime:  this.http.get(`${base}/process.uptime`).pipe(catchError(() => of(null))),
     });
   }
 
