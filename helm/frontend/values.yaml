@@ -28,11 +28,11 @@ autoscaling:
   targetCPUUtilizationPercentage: 70
 
 readinessProbe:
-  path: /
+  path: /healthz
   initialDelaySeconds: 10
   periodSeconds: 10
 
 livenessProbe:
-  path: /
+  path: /healthz
   initialDelaySeconds: 20
   periodSeconds: 30

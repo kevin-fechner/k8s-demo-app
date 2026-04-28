@@ -24,6 +24,8 @@ const angularApp = new AngularNodeAppEngine();
  * ```
  */
 
+app.get('/healthz', (_, res) => res.status(200).send('ok'));
+
 /**
  * Serve static files from /browser
  */

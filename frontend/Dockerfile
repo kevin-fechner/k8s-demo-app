@@ -19,7 +19,7 @@ COPY --from=build /app/dist/demo-app ./dist/demo-app
 ENV PORT=4000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD wget -q -O- http://localhost:4000 || exit 1
+  CMD wget -q -O- http://localhost:4000/healthz || exit 1
 
 EXPOSE 4000
 
