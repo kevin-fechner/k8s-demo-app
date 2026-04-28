@@ -62,6 +62,11 @@ if (isMainModule(import.meta.url) || process.env['pm_id']) {
   });
 }
 
+app.use((req, res, next) => {
+  console.log(`[SSR] ${req.method} ${req.url}`);
+  next();
+});
+
 /**
  * Request handler used by the Angular CLI (for dev-server and during build) or Firebase Cloud Functions.
  */

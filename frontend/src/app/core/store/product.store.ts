@@ -1,11 +1,13 @@
 import {patchState, signalStore, withHooks, withMethods, withState} from '@ngrx/signals';
-import {inject} from '@angular/core';
+import {inject, PLATFORM_ID} from '@angular/core';
 import {rxMethod} from '@ngrx/signals/rxjs-interop';
 import {tapResponse} from '@ngrx/operators';
 import {pipe, switchMap, tap} from 'rxjs';
 import {ProductService} from '../services/product.service';
 import {Product, ProductRequest} from '../models/product.model';
 import {StockNumbers} from '../models/stock-numbers.model';
+import {CursorPage} from '../models/pagination.model';
+import {isPlatformBrowser} from '@angular/common';
 
 interface ProductState {
   products: Product[];
@@ -94,6 +96,15 @@ export const ProductStore = signalStore(
         )
       )
     ),
+
+    setInitialProducts(page: CursorPage<Product>): void {
+      patchState(store, {
+        products: page.data,
+        cursor: page.nextCursor ?? null,
+        hasMore: page.hasMore,
+        loading: false
+      });
+    },
   })),
 
   withMethods((store, productService = inject(ProductService)) => ({
@@ -186,8 +197,11 @@ export const ProductStore = signalStore(
 
   withHooks({
     onInit(store) {
-      store.loadProducts();
-      store.loadStockNumbers();
+      const platformId = inject(PLATFORM_ID);
+      if (isPlatformBrowser(platformId)) {
+        store.loadProducts();
+        store.loadStockNumbers();
+      }
     }
   })
 );
