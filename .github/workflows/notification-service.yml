@@ -4,19 +4,19 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'services/notification-service/**'
-      - 'services/kafka-events/**'
-      - '.github/workflows/notification-service.yml'
+      - "services/notification-service/**"
+      - "services/kafka-events/**"
+      - ".github/workflows/notification-service.yml"
   pull_request:
     branches: [ main ]
     paths:
-      - 'services/notification-service/**'
-      - 'services/kafka-events/**'
-      - '.github/workflows/notification-service.yml'
+      - "services/notification-service/**"
+      - "services/kafka-events/**"
+      - ".github/workflows/notification-service.yml"
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/k8s-demo-app/notification-service
-  JAVA_VERSION: '21'
+  JAVA_VERSION: "21"
 
 jobs:
   test:
@@ -39,6 +39,10 @@ jobs:
         run: |
           cd services/kafka-events
           mvn clean install -DskipTests
+
+      - name: Check Java formatting
+        working-directory: services/order-service
+        run: mvn fmt:check -B
 
       - name: Run tests with coverage
         working-directory: services/notification-service

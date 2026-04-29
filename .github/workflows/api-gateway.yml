@@ -4,16 +4,16 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'services/api-gateway/**'
-      - '.github/workflows/api-gateway.yml'
+      - "services/api-gateway/**"
+      - ".github/workflows/api-gateway.yml"
   pull_request:
     branches: [ main ]
     paths:
-      - 'services/api-gateway/**'
+      - "services/api-gateway/**"
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/k8s-demo-app/api-gateway
-  JAVA_VERSION: '21'
+  JAVA_VERSION: "21"
 
 jobs:
   test:
@@ -31,6 +31,10 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: temurin
           cache: maven
+
+      - name: Check Java formatting
+        working-directory: services/order-service
+        run: mvn fmt:check -B
 
       - name: Run tests with coverage
         working-directory: services/api-gateway
