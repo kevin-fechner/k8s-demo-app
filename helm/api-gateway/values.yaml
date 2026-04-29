@@ -3,7 +3,11 @@ replicaCount: 2
 image:
   repository: ghcr.io/kevin-fechner/k8s-demo-app/api-gateway
   pullPolicy: IfNotPresent
+<<<<<<< Updated upstream
   tag: "sha-2aed65a"
+=======
+  tag: "sha-c8fc4ad"
+>>>>>>> Stashed changes
 
 service:
   type: ClusterIP
