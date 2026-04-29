@@ -2,7 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { PLATFORM_ID } from '@angular/core';
 import { ApiUrlService } from './api-url.service';
 
-type GlobalWithProcess = typeof globalThis & { process?: { env: Record<string, string | undefined> } };
+type GlobalWithProcess = typeof globalThis & {
+  process?: { env: Record<string, string | undefined> };
+};
 
 describe('ApiUrlService', () => {
   describe('in browser', () => {

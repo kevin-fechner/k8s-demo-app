@@ -9,7 +9,13 @@ describe('HealthDashboardComponent', () => {
   let getAllHealthSpy: ReturnType<typeof vi.fn>;
 
   const allUp: ServiceHealth[] = [
-    { name: 'API Gateway', status: 'UP', uptime: '2h 5m', memoryUsed: '256 MB', memoryMax: '512 MB' },
+    {
+      name: 'API Gateway',
+      status: 'UP',
+      uptime: '2h 5m',
+      memoryUsed: '256 MB',
+      memoryMax: '512 MB',
+    },
     { name: 'Order Service', status: 'UP' },
     { name: 'Product Service', status: 'UP' },
     { name: 'Notification Service', status: 'UP' },

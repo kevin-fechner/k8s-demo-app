@@ -9,7 +9,7 @@ export class ApiUrlService {
     if (isPlatformBrowser(this.platformId)) {
       return '';
     }
-    type NodeProcess = { env: Record<string, string | undefined> };
+    interface NodeProcess { env: Record<string, string | undefined> }
     const nodeProcess = (globalThis as typeof globalThis & { process?: NodeProcess }).process;
     return nodeProcess?.env['API_URL'] ?? 'http://api-gateway.demo-app.svc.cluster.local:8080';
   }

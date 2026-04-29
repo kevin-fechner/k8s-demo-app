@@ -53,7 +53,9 @@ describe('ProductService', () => {
     });
 
     it('includes filter params when provided', () => {
-      service.getPage(null, 5, { name: 'widget', inStock: true, minPrice: 1, maxPrice: 50 }).subscribe();
+      service
+        .getPage(null, 5, { name: 'widget', inStock: true, minPrice: 1, maxPrice: 50 })
+        .subscribe();
       const req = httpMock.expectOne((r) => r.url === '/api/products');
       expect(req.request.params.get('size')).toBe('5');
       expect(req.request.params.get('name')).toBe('widget');
@@ -92,7 +94,12 @@ describe('ProductService', () => {
   });
 
   it('create sends POST /api/products with the request body', () => {
-    const request: ProductRequest = { name: 'Widget', description: 'A widget', price: 9.99, stock: 100 };
+    const request: ProductRequest = {
+      name: 'Widget',
+      description: 'A widget',
+      price: 9.99,
+      stock: 100,
+    };
     let result: Product | undefined;
     service.create(request).subscribe((p) => (result = p));
     const req = httpMock.expectOne('/api/products');
@@ -103,7 +110,12 @@ describe('ProductService', () => {
   });
 
   it('update sends PUT /api/products/:id with the request body', () => {
-    const request: ProductRequest = { name: 'Updated', description: 'Updated desc', price: 19.99, stock: 50 };
+    const request: ProductRequest = {
+      name: 'Updated',
+      description: 'Updated desc',
+      price: 19.99,
+      stock: 50,
+    };
     let result: Product | undefined;
     service.update(1, request).subscribe((p) => (result = p));
     const req = httpMock.expectOne('/api/products/1');
