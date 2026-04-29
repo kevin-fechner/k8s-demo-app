@@ -38,9 +38,9 @@ jobs:
         working-directory: frontend
         run: npx prettier --check "src/**/*.{ts,html,scss,json}"
 
-      - name: Run linting
+      - name: Lint
         working-directory: frontend
-        run: npm run lint || true
+        run: ng lint
 
       - name: Build production bundle
         working-directory: frontend

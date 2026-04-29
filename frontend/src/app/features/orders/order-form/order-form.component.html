@@ -1,5 +1,15 @@
-<div class="overlay" (click)="cancelled.emit()">
-  <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-label="New Order">
+<button
+  class="overlay"
+  tabindex="0"
+  (click)="cancelled.emit()"
+  (keydown.enter)="cancelled.emit()"
+  (keydown.space)="cancelled.emit()">
+  <!-- eslint-disable-next-line @angular-eslint/template/interactive-supports-focus -->
+  <dialog
+    class="modal"
+    aria-label="New Order"
+    (click)="$event.stopPropagation()"
+    (keydown)="$event.stopPropagation()">
     <h2>New Order</h2>
 
     @if (orderStore.error()) {
@@ -55,5 +65,5 @@
         </button>
       </div>
     </form>
-  </div>
-</div>
+  </dialog>
+</button>

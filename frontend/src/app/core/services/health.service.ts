@@ -13,7 +13,22 @@ export interface ServiceHealth {
   diskSpace?: string;
   kafka?: string;
   db?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
+}
+
+interface HealthResponse {
+  status: string;
+  components?: Record<string, { status: string }>;
+}
+
+interface MetricResponse {
+  measurements: { statistic: string; value: number }[];
+}
+
+interface MetricsResponse {
+  memUsed: MetricResponse | null;
+  memMax: MetricResponse | null;
+  uptime: MetricResponse | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -45,22 +60,32 @@ export class HealthService {
     return forkJoin(requests);
   }
 
-  private fetchHealth(path: string): Observable<any> {
+  private fetchHealth(path: string): Observable<HealthResponse> {
     return this.http
-      .get(`${this.apiUrl}/api/${path}/actuator/health`)
+      .get<HealthResponse>(`${this.apiUrl}/api/${path}/actuator/health`)
       .pipe(catchError(() => of({ status: 'DOWN' })));
   }
 
-  private fetchMetrics(path: string): Observable<any> {
+  private fetchMetrics(path: string): Observable<MetricsResponse> {
     const base = `${this.apiUrl}/api/${path}/actuator/metrics`;
     return forkJoin({
-      memUsed: this.http.get(`${base}/jvm.memory.used`).pipe(catchError(() => of(null))),
-      memMax: this.http.get(`${base}/jvm.memory.max`).pipe(catchError(() => of(null))),
-      uptime: this.http.get(`${base}/process.uptime`).pipe(catchError(() => of(null))),
+      memUsed: this.http
+        .get<MetricResponse>(`${base}/jvm.memory.used`)
+        .pipe(catchError(() => of(null))),
+      memMax: this.http
+        .get<MetricResponse>(`${base}/jvm.memory.max`)
+        .pipe(catchError(() => of(null))),
+      uptime: this.http
+        .get<MetricResponse>(`${base}/process.uptime`)
+        .pipe(catchError(() => of(null))),
     });
   }
 
-  private mapToServiceHealth(name: string, health: any, metrics: any): ServiceHealth {
+  private mapToServiceHealth(
+    name: string,
+    health: HealthResponse,
+    metrics: MetricsResponse
+  ): ServiceHealth {
     const memUsedBytes = metrics?.memUsed?.measurements?.[0]?.value;
     const memMaxBytes = metrics?.memMax?.measurements?.[0]?.value;
     const uptimeSeconds = metrics?.uptime?.measurements?.[0]?.value;

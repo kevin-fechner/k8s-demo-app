@@ -1,9 +1,15 @@
-<div class="overlay" (click)="cancelled.emit()">
-  <div
+<button
+  class="overlay"
+  tabindex="0"
+  (click)="cancelled.emit()"
+  (keydown.enter)="cancelled.emit()"
+  (keydown.space)="cancelled.emit()">
+  <!-- eslint-disable-next-line @angular-eslint/template/interactive-supports-focus -->
+  <dialog
     class="modal"
+    [attr.aria-label]="product() ? 'Edit Product' : 'Add Product'"
     (click)="$event.stopPropagation()"
-    role="dialog"
-    [attr.aria-label]="product() ? 'Edit Product' : 'Add Product'">
+    (keydown)="$event.stopPropagation()">
     <h2>{{ product() ? 'Edit Product' : 'Add Product' }}</h2>
 
     @if (store.error()) {
@@ -49,5 +55,5 @@
         </button>
       </div>
     </form>
-  </div>
-</div>
+  </dialog>
+</button>
