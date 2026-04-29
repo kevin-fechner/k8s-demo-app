@@ -280,6 +280,25 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Wrapper for Google Java Format -->
+            <plugin>
+                <groupId>com.spotify.fmt</groupId>
+                <artifactId>fmt-maven-plugin</artifactId>
+                <version>2.25</version>
+                <configuration>
+                    <style>google</style>
+                    <verbose>false</verbose>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                        <phase>validate</phase>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

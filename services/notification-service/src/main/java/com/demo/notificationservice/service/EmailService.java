@@ -5,7 +5,7 @@ import com.demo.events.order.OrderStatusChangedEvent;
 
 public interface EmailService {
 
-    void sendOrderConfirmation(OrderCreatedEvent event);
+  void sendOrderConfirmation(OrderCreatedEvent event);
 
-    void sendStatusUpdate(OrderStatusChangedEvent event);
+  void sendStatusUpdate(OrderStatusChangedEvent event);
 }

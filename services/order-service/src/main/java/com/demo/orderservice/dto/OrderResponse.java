@@ -6,13 +6,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record OrderResponse(
-        Long id,
-        String customerName,
-        String customerEmail,
-        OrderStatus status,
-        BigDecimal totalAmount,
-        String notes,
-        List<OrderItemResponse> items,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
-) {}
+    Long id,
+    String customerName,
+    String customerEmail,
+    OrderStatus status,
+    BigDecimal totalAmount,
+    String notes,
+    List<OrderItemResponse> items,
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt) {}

@@ -1,6 +1,14 @@
 package com.demo.orderservice.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
 import com.demo.orderservice.dto.ProductDto;
+import java.math.BigDecimal;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,71 +20,53 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
-import java.math.BigDecimal;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class ProductClientTest {
 
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    private RestClient restClient;
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+  private RestClient restClient;
 
-    private ProductClient productClient;
+  private ProductClient productClient;
 
-    @BeforeEach
-    void setUp() {
-        productClient = new ProductClient(restClient);
-        ReflectionTestUtils.setField(productClient, "restClient", restClient);
-    }
+  @BeforeEach
+  void setUp() {
+    productClient = new ProductClient(restClient);
+    ReflectionTestUtils.setField(productClient, "restClient", restClient);
+  }
 
-    @Test
-    @DisplayName("Should return product wrapped in Optional when server responds successfully")
-    void getProductById_Success_ReturnsProduct() {
-        ProductDto expected = new ProductDto(1L, "Widget", "A widget", new BigDecimal("9.99"), 100);
-        when(restClient.get()
-                .uri(anyString(), any(Long.class))
-                .retrieve()
-                .body(ProductDto.class))
-                .thenReturn(expected);
+  @Test
+  @DisplayName("Should return product wrapped in Optional when server responds successfully")
+  void getProductById_Success_ReturnsProduct() {
+    ProductDto expected = new ProductDto(1L, "Widget", "A widget", new BigDecimal("9.99"), 100);
+    when(restClient.get().uri(anyString(), any(Long.class)).retrieve().body(ProductDto.class))
+        .thenReturn(expected);
 
-        Optional<ProductDto> result = productClient.getProductById(1L);
+    Optional<ProductDto> result = productClient.getProductById(1L);
 
-        assertThat(result).isPresent();
-        assertThat(result.get().id()).isEqualTo(1L);
-        assertThat(result.get().name()).isEqualTo("Widget");
-    }
+    assertThat(result).isPresent();
+    assertThat(result.get().id()).isEqualTo(1L);
+    assertThat(result.get().name()).isEqualTo("Widget");
+  }
 
-    @Test
-    @DisplayName("Should return empty Optional when server returns null body")
-    void getProductById_NullResponse_ReturnsEmpty() {
-        when(restClient.get()
-                .uri(anyString(), any(Long.class))
-                .retrieve()
-                .body(ProductDto.class))
-                .thenReturn(null);
+  @Test
+  @DisplayName("Should return empty Optional when server returns null body")
+  void getProductById_NullResponse_ReturnsEmpty() {
+    when(restClient.get().uri(anyString(), any(Long.class)).retrieve().body(ProductDto.class))
+        .thenReturn(null);
 
-        Optional<ProductDto> result = productClient.getProductById(1L);
+    Optional<ProductDto> result = productClient.getProductById(1L);
 
-        assertThat(result).isEmpty();
-    }
+    assertThat(result).isEmpty();
+  }
 
-    @Test
-    @DisplayName("Should rethrow RestClientException (fallback requires circuit breaker AOP)")
-    void getProductById_RestClientException_Rethrows() {
-        when(restClient.get()
-                .uri(anyString(), any(Long.class))
-                .retrieve()
-                .body(ProductDto.class))
-                .thenThrow(new RestClientException("Connection refused"));
+  @Test
+  @DisplayName("Should rethrow RestClientException (fallback requires circuit breaker AOP)")
+  void getProductById_RestClientException_Rethrows() {
+    when(restClient.get().uri(anyString(), any(Long.class)).retrieve().body(ProductDto.class))
+        .thenThrow(new RestClientException("Connection refused"));
 
-        assertThatThrownBy(() -> productClient.getProductById(1L))
-                .isInstanceOf(RestClientException.class)
-                .hasMessage("Connection refused");
-    }
+    assertThatThrownBy(() -> productClient.getProductById(1L))
+        .isInstanceOf(RestClientException.class)
+        .hasMessage("Connection refused");
+  }
 }

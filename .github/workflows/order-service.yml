@@ -19,6 +19,7 @@ env:
 
 jobs:
   test:
+    
     name: Test & SonarCloud Analysis
     runs-on: ubuntu-latest
     steps:
@@ -33,10 +34,15 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: temurin
           cache: maven
+
       - name: Build kafka-events module
         run: |
           cd services/kafka-events
           mvn clean install -DskipTests
+          
+      - name: Check Java formatting
+        working-directory: services/order-service
+        run: mvn fmt:check -B    
 
       - name: Run tests with coverage
         working-directory: services/order-service
