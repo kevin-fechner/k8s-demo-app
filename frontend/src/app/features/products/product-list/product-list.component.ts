@@ -1,16 +1,16 @@
-import {ChangeDetectionStrategy, Component, inject, OnInit} from '@angular/core';
-import {CommonModule, CurrencyPipe} from '@angular/common';
-import {ProductStore} from '../../../core/store/product.store';
-import {Product} from '../../../core/models/product.model';
-import {ProductFormComponent} from '../product-form/product-form.component';
-import {ActivatedRoute} from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { CommonModule, CurrencyPipe } from '@angular/common';
+import { ProductStore } from '../../../core/store/product.store';
+import { Product } from '../../../core/models/product.model';
+import { ProductFormComponent } from '../product-form/product-form.component';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-product-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, CurrencyPipe, ProductFormComponent],
   templateUrl: 'product-list.component.html',
-  styleUrls: ['./product-list.component.scss']
+  styleUrls: ['./product-list.component.scss'],
 })
 export class ProductListComponent implements OnInit {
   readonly store = inject(ProductStore);

@@ -1,15 +1,15 @@
-import {ChangeDetectionStrategy, Component, inject, OnInit, output} from '@angular/core';
-import {CurrencyPipe} from '@angular/common';
-import {FormArray, FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
-import {OrderStore} from '../../../core/store/order.store';
-import {ProductStore} from '../../../core/store/product.store';
+import { ChangeDetectionStrategy, Component, inject, OnInit, output } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
+import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { OrderStore } from '../../../core/store/order.store';
+import { ProductStore } from '../../../core/store/product.store';
 
 @Component({
   selector: 'app-order-form',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CurrencyPipe, ReactiveFormsModule],
   templateUrl: 'order-form.component.html',
-  styleUrl: 'order-form.component.scss'
+  styleUrl: 'order-form.component.scss',
 })
 export class OrderFormComponent implements OnInit {
   saved = output<void>();
@@ -23,7 +23,7 @@ export class OrderFormComponent implements OnInit {
     customerName: ['', [Validators.required, Validators.maxLength(255)]],
     customerEmail: ['', [Validators.required, Validators.email]],
     notes: [''],
-    items: this.fb.array([this.createItemGroup()])
+    items: this.fb.array([this.createItemGroup()]),
   });
 
   get itemsArray(): FormArray {
@@ -41,7 +41,7 @@ export class OrderFormComponent implements OnInit {
   createItemGroup() {
     return this.fb.group({
       productId: ['', Validators.required],
-      quantity: [1, [Validators.required, Validators.min(1)]]
+      quantity: [1, [Validators.required, Validators.min(1)]],
     });
   }
 
@@ -55,15 +55,15 @@ export class OrderFormComponent implements OnInit {
 
   save(): void {
     if (this.form.invalid) return;
-    const {customerName, customerEmail, notes, items} = this.form.value;
+    const { customerName, customerEmail, notes, items } = this.form.value;
     this.orderStore.createOrder({
       customerName: customerName!,
       customerEmail: customerEmail!,
       notes: notes || undefined,
-      items: items!.map(i => ({
+      items: items!.map((i) => ({
         productId: Number(i.productId),
-        quantity: Number(i.quantity)
-      }))
+        quantity: Number(i.quantity),
+      })),
     });
   }
 }

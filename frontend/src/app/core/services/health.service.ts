@@ -1,8 +1,8 @@
-import {inject, Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {catchError, forkJoin, Observable, of} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {ApiUrlService} from './api-url.service';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { catchError, forkJoin, Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { ApiUrlService } from './api-url.service';
 
 export interface ServiceHealth {
   name: string;
@@ -26,16 +26,16 @@ export class HealthService {
   }
 
   private readonly services = [
-    { name: 'API Gateway',           path: 'gateway' },
-    { name: 'Order Service',         path: 'order-service' },
-    { name: 'Product Service',       path: 'product-service' },
-    { name: 'Notification Service',  path: 'notification-service' },
+    { name: 'API Gateway', path: 'gateway' },
+    { name: 'Order Service', path: 'order-service' },
+    { name: 'Product Service', path: 'product-service' },
+    { name: 'Notification Service', path: 'notification-service' },
   ];
 
   getAllHealth(): Observable<ServiceHealth[]> {
-    const requests = this.services.map(svc =>
+    const requests = this.services.map((svc) =>
       forkJoin({
-        health:  this.fetchHealth(svc.path),
+        health: this.fetchHealth(svc.path),
         metrics: this.fetchMetrics(svc.path),
       }).pipe(
         map(({ health, metrics }) => this.mapToServiceHealth(svc.name, health, metrics)),
@@ -46,7 +46,8 @@ export class HealthService {
   }
 
   private fetchHealth(path: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/api/${path}/actuator/health`)
+    return this.http
+      .get(`${this.apiUrl}/api/${path}/actuator/health`)
       .pipe(catchError(() => of({ status: 'DOWN' })));
   }
 
@@ -54,8 +55,8 @@ export class HealthService {
     const base = `${this.apiUrl}/api/${path}/actuator/metrics`;
     return forkJoin({
       memUsed: this.http.get(`${base}/jvm.memory.used`).pipe(catchError(() => of(null))),
-      memMax:  this.http.get(`${base}/jvm.memory.max`).pipe(catchError(() => of(null))),
-      uptime:  this.http.get(`${base}/process.uptime`).pipe(catchError(() => of(null))),
+      memMax: this.http.get(`${base}/jvm.memory.max`).pipe(catchError(() => of(null))),
+      uptime: this.http.get(`${base}/process.uptime`).pipe(catchError(() => of(null))),
     });
   }
 
@@ -71,8 +72,7 @@ export class HealthService {
       memoryUsed: memUsedBytes ? this.formatBytes(memUsedBytes) : undefined,
       memoryMax: memMaxBytes ? this.formatBytes(memMaxBytes) : undefined,
       kafka: health?.components?.kafka?.status,
-      db: health?.components?.db?.status ??
-          health?.components?.['notifications-db']?.status,
+      db: health?.components?.db?.status ?? health?.components?.['notifications-db']?.status,
       details: health?.components,
     };
   }
@@ -88,9 +88,7 @@ export class HealthService {
 
   private formatBytes(bytes: number): string {
     const mb = bytes / (1024 * 1024);
-    return mb > 1024
-      ? `${(mb / 1024).toFixed(1)} GB`
-      : `${Math.round(mb)} MB`;
+    return mb > 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${Math.round(mb)} MB`;
   }
 
   private unknownService(name: string): ServiceHealth {

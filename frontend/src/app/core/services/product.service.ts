@@ -1,12 +1,12 @@
-import {inject, Injectable} from '@angular/core';
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {Observable} from 'rxjs';
-import {Product, ProductFilter, ProductRequest} from '../models/product.model';
-import {CursorPage} from '../models/pagination.model';
-import {StockNumbers} from '../models/stock-numbers.model';
-import {ApiUrlService} from './api-url.service';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Product, ProductFilter, ProductRequest } from '../models/product.model';
+import { CursorPage } from '../models/pagination.model';
+import { StockNumbers } from '../models/stock-numbers.model';
+import { ApiUrlService } from './api-url.service';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class ProductService {
   private readonly http = inject(HttpClient);
   private readonly apiUrlService = inject(ApiUrlService);
@@ -15,14 +15,18 @@ export class ProductService {
     return `${this.apiUrlService.baseUrl}/api/products`;
   }
 
-  getPage(cursor?: string | null, size = 10, filter?: ProductFilter): Observable<CursorPage<Product>> {
+  getPage(
+    cursor?: string | null,
+    size = 10,
+    filter?: ProductFilter
+  ): Observable<CursorPage<Product>> {
     let params = new HttpParams().set('size', size);
     if (cursor) params = params.set('cursor', cursor);
     if (filter?.name) params = params.set('name', filter.name);
     if (filter?.minPrice != null) params = params.set('minPrice', filter.minPrice);
     if (filter?.maxPrice != null) params = params.set('maxPrice', filter.maxPrice);
     if (filter?.inStock != null) params = params.set('inStock', filter.inStock);
-    return this.http.get<CursorPage<Product>>(this.apiUrl, {params});
+    return this.http.get<CursorPage<Product>>(this.apiUrl, { params });
   }
 
   getById(id: number): Observable<Product> {

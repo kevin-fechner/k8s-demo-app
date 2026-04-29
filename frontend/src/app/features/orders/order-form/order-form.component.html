@@ -1,6 +1,5 @@
 <div class="overlay" (click)="cancelled.emit()">
-  <div class="modal" (click)="$event.stopPropagation()"
-       role="dialog" aria-label="New Order">
+  <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-label="New Order">
     <h2>New Order</h2>
 
     @if (orderStore.error()) {
@@ -10,17 +9,12 @@
     <form [formGroup]="form" (ngSubmit)="save()">
       <div class="form-group">
         <label for="customerName">Customer Name *</label>
-        <input id="customerName"
-               formControlName="customerName"
-               placeholder="John Doe" />
+        <input id="customerName" formControlName="customerName" placeholder="John Doe" />
       </div>
 
       <div class="form-group">
         <label for="customerEmail">Customer Email *</label>
-        <input id="customerEmail"
-               formControlName="customerEmail"
-               type="email"
-               placeholder="john@example.com" />
+        <input id="customerEmail" formControlName="customerEmail" type="email" placeholder="john@example.com" />
       </div>
 
       <div class="form-group">
@@ -32,39 +26,31 @@
       <div formArrayName="items">
         @for (item of itemsArray.controls; track $index) {
           <div class="item-row" [formGroupName]="$index">
-            <label [for]="'product-' + $index" class="sr-only">
-              Product for item {{ $index + 1 }}
-            </label>
+            <label [for]="'product-' + $index" class="sr-only"> Product for item {{ $index + 1 }} </label>
             <select [id]="'product-' + $index" formControlName="productId">
               <option value="">Select product...</option>
               @for (p of productStore.products(); track p.id) {
-                <option [value]="p.id">
-                  {{ p.name }} ({{ p.price | currency }})
-                </option>
+                <option [value]="p.id">{{ p.name }} ({{ p.price | currency }})</option>
               }
             </select>
-            <label [for]="'qty-' + $index" class="sr-only">
-              Quantity for item {{ $index + 1 }}
-            </label>
-            <input [id]="'qty-' + $index"
-                   formControlName="quantity"
-                   type="number" min="1" />
-            <button type="button" class="btn-remove"
-                    [attr.aria-label]="'Remove item ' + ($index + 1)"
-                    (click)="removeItem($index)">✕</button>
+            <label [for]="'qty-' + $index" class="sr-only"> Quantity for item {{ $index + 1 }} </label>
+            <input [id]="'qty-' + $index" formControlName="quantity" type="number" min="1" />
+            <button
+              type="button"
+              class="btn-remove"
+              [attr.aria-label]="'Remove item ' + ($index + 1)"
+              (click)="removeItem($index)">
+              ✕
+            </button>
           </div>
         }
       </div>
 
-      <button type="button" class="btn-add-item" (click)="addItem()">
-        + Add Item
-      </button>
+      <button type="button" class="btn-add-item" (click)="addItem()">+ Add Item</button>
 
       <div class="form-actions">
-        <button type="button" class="btn-cancel"
-                (click)="cancelled.emit()">Cancel</button>
-        <button type="submit" class="btn-save"
-                [disabled]="orderStore.loading() || form.invalid">
+        <button type="button" class="btn-cancel" (click)="cancelled.emit()">Cancel</button>
+        <button type="submit" class="btn-save" [disabled]="orderStore.loading() || form.invalid">
           {{ orderStore.loading() ? 'Saving...' : 'Place Order' }}
         </button>
       </div>

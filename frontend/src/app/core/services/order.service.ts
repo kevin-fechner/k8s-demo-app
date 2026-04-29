@@ -1,11 +1,11 @@
-import {inject, Injectable} from '@angular/core';
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {Observable} from 'rxjs';
-import {Order, OrderFilter, OrderRequest, UpdateStatusRequest} from '../models/order.model';
-import {CursorPage} from '../models/pagination.model';
-import {ApiUrlService} from './api-url.service';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Order, OrderFilter, OrderRequest, UpdateStatusRequest } from '../models/order.model';
+import { CursorPage } from '../models/pagination.model';
+import { ApiUrlService } from './api-url.service';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class OrderService {
   private readonly http = inject(HttpClient);
   private readonly apiUrlService = inject(ApiUrlService);
@@ -21,7 +21,7 @@ export class OrderService {
     if (filter?.customerEmail) params = params.set('customerEmail', filter.customerEmail);
     if (filter?.fromDate) params = params.set('fromDate', filter.fromDate);
     if (filter?.toDate) params = params.set('toDate', filter.toDate);
-    return this.http.get<CursorPage<Order>>(this.apiUrl, {params});
+    return this.http.get<CursorPage<Order>>(this.apiUrl, { params });
   }
 
   getById(id: number): Observable<Order> {

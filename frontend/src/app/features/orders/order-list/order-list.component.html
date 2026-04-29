@@ -3,27 +3,19 @@
   <div class="header-stats">
     <span class="stat">Total: {{ store.totalOrders() }}</span>
     <span class="stat pending">Pending: {{ store.pendingOrders() }}</span>
-    <span class="stat revenue">
-          Revenue: {{ store.totalRevenue() | currency }}
-        </span>
+    <span class="stat revenue"> Revenue: {{ store.totalRevenue() | currency }} </span>
   </div>
-  <button class="btn-primary" (click)="store.openForm()">
-    + New Order
-  </button>
+  <button class="btn-primary" (click)="store.openForm()">+ New Order</button>
 </div>
 
 @if (store.loading()) {
-  <div class="loading" role="status" aria-live="polite">
-    Loading orders...
-  </div>
+  <div class="loading" role="status" aria-live="polite">Loading orders...</div>
 }
 
 @if (store.error()) {
   <div class="error" role="alert">
     {{ store.error() }}
-    <button class="btn-close" (click)="store.clearError()"
-            aria-label="Dismiss error">✕
-    </button>
+    <button class="btn-close" (click)="store.clearError()" aria-label="Dismiss error">✕</button>
   </div>
 }
 
@@ -43,10 +35,9 @@
           }
         </div>
         <div class="order-meta">
-              <span class="status" [class]="order.status.toLowerCase()"
-                    [attr.aria-label]="'Status: ' + order.status">
-                {{ order.status }}
-              </span>
+          <span class="status" [class]="order.status.toLowerCase()" [attr.aria-label]="'Status: ' + order.status">
+            {{ order.status }}
+          </span>
           <span class="total">{{ order.totalAmount | currency }}</span>
         </div>
       </div>
@@ -61,19 +52,14 @@
       </div>
 
       <div class="order-actions">
-        <label [for]="'status-' + order.id" class="sr-only">
-          Change status for order #{{ order.id }}
-        </label>
-        <select [id]="'status-' + order.id"
-                (change)="updateStatus(order.id, $event)">
+        <label [for]="'status-' + order.id" class="sr-only"> Change status for order #{{ order.id }} </label>
+        <select [id]="'status-' + order.id" (change)="updateStatus(order.id, $event)">
           <option value="">Change status...</option>
           @for (s of statuses; track s) {
             <option [value]="s" [selected]="order.status === s">{{ s }}</option>
           }
         </select>
-        <button class="btn-delete"
-                (click)="confirmDelete(order)"
-                [attr.aria-label]="'Delete order #' + order.id">
+        <button class="btn-delete" (click)="confirmDelete(order)" [attr.aria-label]="'Delete order #' + order.id">
           Delete
         </button>
       </div>
@@ -83,17 +69,12 @@
 
 @if (store.hasMore()) {
   <div class="load-more">
-    <button class="btn-secondary"
-            (click)="store.loadMore()"
-            [disabled]="store.loading()"
-            aria-label="Load more orders">
+    <button class="btn-secondary" (click)="store.loadMore()" [disabled]="store.loading()" aria-label="Load more orders">
       Load more
     </button>
   </div>
 }
 
 @if (store.showForm()) {
-  <app-order-form
-    (saved)="store.closeForm()"
-    (cancelled)="store.closeForm()"/>
+  <app-order-form (saved)="store.closeForm()" (cancelled)="store.closeForm()" />
 }

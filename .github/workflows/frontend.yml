@@ -4,16 +4,16 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend.yml'
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
   pull_request:
     branches: [ main ]
     paths:
-      - 'frontend/**'
+      - "frontend/**"
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/k8s-demo-app/frontend
-  NODE_VERSION: '22'
+  NODE_VERSION: "22"
 
 jobs:
   test:
@@ -33,6 +33,10 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
+
+      - name: Check formatting
+        working-directory: frontend
+        run: npx prettier --check "src/**/*.{ts,html,scss,json}"
 
       - name: Run linting
         working-directory: frontend

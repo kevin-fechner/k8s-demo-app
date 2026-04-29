@@ -1,7 +1,7 @@
-import {inject, Injectable, PLATFORM_ID} from '@angular/core';
-import {isPlatformBrowser} from '@angular/common';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class ApiUrlService {
   private readonly platformId = inject(PLATFORM_ID);
 

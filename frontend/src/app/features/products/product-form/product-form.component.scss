@@ -32,7 +32,8 @@ h2 {
   color: #444;
 }
 
-.form-group input, .form-group textarea {
+.form-group input,
+.form-group textarea {
   width: 100%;
   padding: 0.6rem;
   border: 1px solid #ddd;
@@ -54,7 +55,8 @@ h2 {
   margin-top: 1.5rem;
 }
 
-.btn-cancel, .btn-save {
+.btn-cancel,
+.btn-save {
   padding: 0.6rem 1.5rem;
   border: none;
   border-radius: 4px;
@@ -91,4 +93,3 @@ h2 {
   margin-top: 0.2rem;
   display: block;
 }
-
