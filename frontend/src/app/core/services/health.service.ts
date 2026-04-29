@@ -96,8 +96,8 @@ export class HealthService {
       uptime: uptimeSeconds ? this.formatUptime(uptimeSeconds) : undefined,
       memoryUsed: memUsedBytes ? this.formatBytes(memUsedBytes) : undefined,
       memoryMax: memMaxBytes ? this.formatBytes(memMaxBytes) : undefined,
-      kafka: health?.components?.kafka?.status,
-      db: health?.components?.db?.status ?? health?.components?.['notifications-db']?.status,
+      kafka: health?.components?.['kafka']?.status,
+      db: health?.components?.['db']?.status ?? health?.components?.['notifications-db']?.status,
       details: health?.components,
     };
   }

@@ -9,6 +9,8 @@ export class ApiUrlService {
     if (isPlatformBrowser(this.platformId)) {
       return '';
     }
-    return process.env['API_URL'] || 'http://api-gateway.demo-app.svc.cluster.local:8080';
+    type NodeProcess = { env: Record<string, string | undefined> };
+    const nodeProcess = (globalThis as typeof globalThis & { process?: NodeProcess }).process;
+    return nodeProcess?.env['API_URL'] ?? 'http://api-gateway.demo-app.svc.cluster.local:8080';
   }
 }
